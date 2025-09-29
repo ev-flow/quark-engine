@@ -60,13 +60,13 @@ To stay updated with the latest news, make sure to watch our GitHub repository a
 
 ![quark agent demo](https://hackmd.io/_uploads/By6ggTni0.png)
 
-With Quark Agent, you can perform analyses using only natural language. It creates Quark Script code following your ideas and adjusts the code promptly as you provide feedback.
+Quark Agent enables vulnerability and malware analysis using only natural language. With Quark Agent, you can create Quark Script code, detect CWEs, generate Quark reports, and adjust the outputs based on your feedback. Explore the showcases below.
 
-# Showcase:
+# Showcase: Detect CWE-798 in ovaa.apk
 
-Here’s a demonstration of using Quark Agent to detect the CWE-798 vulnerability in the ovaa.apk file.
+Here’s a demonstration of using Quark Agent to detect [the CWE-798 vulnerability](https://cwe.mitre.org/data/definitions/798.html) in ovaa.apk.
 
-### Step 1: Environments Requirements
+### Step 1: Environment Requirement
 
 *   Make sure your Python version is 3.10 or above.
 
@@ -79,28 +79,30 @@ git clone https://github.com/quark-engine/quark-engine.git && cd quark-engine
 pip install .[QuarkAgent]
 ```
 
-### Step 3: Prepare the Detection Rule and the Sample File
+### Step 3: Prepare the Sample File and the Detection Rule
+
++ Put [the sample file](https://github.com/oversecured/ovaa) and [the rule](https://github.com/quark-engine/quark-script/blob/main/constructCryptoGraphicKey.json) in the `quark/agent` directory.
 
 ```bash
 .
 ├── ...
 ├── quark                   
     ├── ...           
-    ├── agent               # Put rule file and sample file here
+    ├── agent       # Put the sample file and rule file here.
     ├── ...                
 ```
 
-You can download the **rule file** [here](https://github.com/quark-engine/quark-script/blob/main/constructCryptoGraphicKey.json) and the **sample file** [here](https://github.com/oversecured/ovaa).
-
 ### Step 4: Add your OpenAI API key
 
-Add your OpenAI API key in `quarkAgentWeb.py`
++ Add your OpenAI API key in `quarkAgentWeb.py`
 
 ```python
 os.environ["OPENAI_API_KEY"] = 'your-api-key-here'
 ```
 
 ### Step 5: Run Quark Agent
+
++ Start Quark Agent by running:
 
 ```bash
 $ cd quark/agent
@@ -110,9 +112,40 @@ $ python3 quarkAgentWeb.py
 # The default URL is http://127.0.0.1:5000
 ```
 
-Open a browser and navigate to `127.0.0.1:5000` to start using Quark Agent
+Open a browser and navigate to `127.0.0.1:5000` to start using Quark Agent.
 
-See more CWE detections using [quark scripts](https://quark-engine.readthedocs.io/en/latest/quark_script.html) and play them with Quark Agent !
+See more CWE detections using [Quark scripts](https://quark-engine.readthedocs.io/en/latest/quark_script.html) and play them with Quark Agent!
+
+# Showcase: Generate & Enhance a Quark Report of Ahmyth.apk
+
+Here’s a demonstration of using Quark Agent to generate and enhance a Quark report. The demonstration first generates a Quark [summary report](https://quark-engine.readthedocs.io/en/latest/quark_reports.html#id1) of Ahmyth.apk. Then, it enhances the report's scoring system to emphasize high-risk behaviors.
+
+In this demonstration, we use the command-line interface of Quark Agent.
+
+### Step 1: Install Quark Agent
+
+*   Follow the steps in the first showcase to install Quark Agent.
+
+### Step 2: Prepare the Sample File and the Detection Rule
+
++ Put [the sample file](https://github.com/quark-engine/apk-samples/raw/master/malware-samples/Ahmyth.apk) in the current directory.
++ Put [the rules](https://github.com/quark-engine/quark-rules/tree/master/rules) in a directory named "rules."
+
+For easy demonstration, we use only 10 rules (00001.json - 00010.json) in this showcase.
+
+### Step 3: Run Quark Agent
+
++ Start Quark Agent by running:
+
+```bash
+quark-agent
+```
+
++ Chat with Quark Agent to generate and enhance a summary report.
+
+https://github.com/user-attachments/assets/138732b4-30e5-4282-a6fb-fe34e2dfdf3f
+
+For more details on the prompts used in the video, please check the document [here](https://quark-engine.readthedocs.io/en/latest/quark_agent.html#showcase-enhance-summary-report-with-quark-agent).
 
 # Acknowledgments
 
