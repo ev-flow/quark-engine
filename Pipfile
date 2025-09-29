@@ -17,7 +17,7 @@ quark-engine = {editable = true,path = "."}
 click = "<=8.1.7"
 androguard = "==3.4.0a1"
 graphviz = "<=0.18.2"
-requests = "<=2.32.3"
+requests = "<=2.32.4"
 plotly = "<=5.4.0"
 prompt-toolkit = "<=3.0.36"
 rzpipe = "<=0.1.2"
