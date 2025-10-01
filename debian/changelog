@@ -7,9 +7,9 @@ quark-engine (25.10.1-0kali1) kali-dev; urgency=medium
   * Document Enhancement
 
     - Optimize the document of Quark Script CWE-925. (#808)
-    - Add docs for SpyNote. (#813)
+    - Add an analysis report for the SpyNote malware family. (#813)
 
- --  Shaun Dang <pulorsok@gmail.com>  Mon, 29 Sep 2025 09:56:24 +0800
+ --  Shaun Dang <pulorsok@gmail.com>  Wed, 01 Oct 2025 23:06:24 +0800
 
 quark-engine (25.9.1-0kali1) kali-dev; urgency=medium
 
