@@ -736,3 +736,118 @@ The table below lists the APKs we tested.
 +-------+------------------------------------------------------------------+
 | 22    | 969BCDB8DC4043483AB645AFFF4616A1845F2276EF4165475F6357D71508047C |
 +-------+------------------------------------------------------------------+
+
+
+New Quark Rules For SpyNote
+===========================
+
+New Quark rules (#238 - #242) are now available. These rules target `SpyNote <https://www.f-secure.com/en/articles/take-a-note-of-spynote-malware>`_\ , a malware family that takes screenshots, simulates user gestures, logs user input, and communicates with C2 servers. Check `here <https://github.com/ev-flow/quark-rules>`_ for the rule details.
+
+With these rules, Quark is now able to identify the SpyNote malware family as high-risk. In our experiment, Quark achieved 100% accuracy and 100% precision. Please check :ref:`here <list-of-tested-apks-spynote>` for the APKs we tested.
+
+Below is a summary report of a SpyNote sample (\ ``0713a683567125ea6fdff233cfa850b36a0d2c7d7c964510405cbdf669fe2a8b``\ ). The report shows that Quark identified the sample as high-risk, with a list of behaviors as evidence.
+
+
+.. image:: https://i.postimg.cc/4NYt9kTb/Screenshot-2025-09-24-10-00-28-Screenshot-2025-09-24-10-03-382.jpg
+   :target: https://i.postimg.cc/4NYt9kTb/Screenshot-2025-09-24-10-00-28-Screenshot-2025-09-24-10-03-382.jpg
+   :alt:
+
+
+Identified Well-Known Threats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With Quark's `rule classification <https://quark-engine.readthedocs.io/en/latest/quark_reports.html#rule-classification>`_ feature, analysts can generate behavior maps and see how behaviors are related. This feature helps identify 4 well-known threats from SpyNote, as shown below.
+
+**1. Take screenshots**
+
+
+.. image:: https://i.postimg.cc/wMcJFd87/screenshot.png
+   :target: https://i.postimg.cc/wMcJFd87/screenshot.png
+   :alt:
+
+
+The behavior map shows that the ``Lcom/maintain/gybbpabtniopoetzeacrkmlxdhuvgpvnwtahmsaxmtnaltfrgf2/keydkuycdcczonreivsieapzgrzkejxcowwsziydpvouihgqnu3/AccessService`` function obtains screenshot data and converts it into bitmap format.
+
+Behaviors detected by Quark:
+
+
+* Extract screenshot data to bitmap format (#00238)
+
+**2. Simulate user gestures**
+
+
+.. image:: https://i.postimg.cc/k4yXpMG3/gesture.png
+   :target: https://i.postimg.cc/k4yXpMG3/gesture.png
+   :alt:
+
+
+The behavior map shows that the ``Lcom/maintain/gybbpabtniopoetzeacrkmlxdhuvgpvnwtahmsaxmtnaltfrgf2/Perfct;clickByGesture`` function simulates user finger gestures on a mobile phone.
+
+Behaviors detected by Quark:
+
+
+* Simulate user gestures (#00240)
+
+**3. Log user input**
+
+
+.. image:: https://i.postimg.cc/pVcgt0r5/logging.png
+   :target: https://i.postimg.cc/pVcgt0r5/logging.png
+   :alt:
+
+
+The behavior map shows that the ``Lcom/maintain/gybbpabtniopoetzeacrkmlxdhuvgpvnwtahmsaxmtnaltfrgf2/keydkuycdcczonreivsieapzgrzkejxcowwsziydpvouihgqnu3/AccessService;checkPassword`` function obtains the description of a UI element. It also calls the ``Lcom/maintain/gybbpabtniopoetzeacrkmlxdhuvgpvnwtahmsaxmtnaltfrgf2/FileUtils;writeText`` to log the data to a file. If the UI element is a keypad button on the lock screen, the user's password can be logged.
+
+Behaviors detected by Quark:
+
+
+* Get the description of a UI element (#00241)
+* Write data to a file (#00242)
+
+**4. Communicate with C2 servers**
+
+
+.. image:: https://i.postimg.cc/cCHZkQPw/connect.png
+   :target: https://i.postimg.cc/cCHZkQPw/connect.png
+   :alt:
+
+
+The behavior map shows that the ``Lcom/maintain/gybbpabtniopoetzeacrkmlxdhuvgpvnwtahmsaxmtnaltfrgf2/hlshzietuthuztzpsjgswpikkmwdxkiqxbzdseqdoywzyerfhi4/CameraHandler$1;run`` function establishes a connection to an IP address, which could be a malicious C2 server.
+
+Behaviors detected by Quark:
+
+
+* Establish a connection to an IP address (#00239)
+
+.. _list-of-tested-apks-spynote:
+
+List of Tested APKs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The table below lists the APKs we tested.
+
+.. list-table::
+   :header-rows: 1
+
+   * - index
+     - sha256
+   * - 1
+     - 059b5f74e053c2966775157cd521580fcfaa3b1a7613560b8f499dbd9c11d4b4
+   * - 2
+     - 0713a683567125ea6fdff233cfa850b36a0d2c7d7c964510405cbdf669fe2a8b
+   * - 3
+     - 4b2b411e03aafaa19ea93286fadd39a5134f4a039db2d5019b1054547c0d5601
+   * - 4
+     - 5c01f7727c78dea9c89dccf92b01b4c45e69406e6462340779401497bf4d4589
+   * - 5
+     - 8c365bd58edeb2ca371ead5e28350ee6c480a79f558d967ecbef525e9f1d7b3e
+   * - 6
+     - da4f59bdc91eaeaba238a8ba9602f7d5cc75f0892a92f5422e23b55accbbb2f0
+   * - 7
+     - dd7650a9cd3f853e109d2d0138ede785e1559d6c2d8c52eec2f2d9808a924f1c
+   * - 8
+     - dee1eaaa8879a7d321ef4e698203be7b23eeda80a6dea3c70cbf3138597b1800
+   * - 9
+     - f46b863952599b91a4d2d682a80f345dfa03fad473d1938f2c53a3139c87a019
+   * - 10
+     - eec5096dfca6824317863f9225c29f6c4b3442c48fefa62dc382e3569bca5a60
