@@ -2914,14 +2914,23 @@ Code of CWE-601 in ovaa.apk
 
 We use the `ovaa.apk <https://github.com/oversecured/ovaa>`_ sample to explain the vulnerability code of CWE-601.
 
-.. image:: https://imgur.com/I61pL2m.png
+.. image:: https://i.postimg.cc/hjqKnKLN/2025-10-08-1-12-43.png
 
-Quark Script: CWE-601.py
-========================
+
+CWE-601 Detection Process Using Quark Script API
+=================================================
+
+.. image:: https://i.postimg.cc/T2tv7V4N/2025-10-08-1-14-40.png
 
 Let’s use the above APIs to show how the Quark script finds this vulnerability.
 
 To detect the vulnerability, we use the API ``findMethodInAPK(samplePath, targetMethod)`` to find all the caller methods of ``startActivity``. Next, we examine the arguments of each method to discover the methods receiving external input. If a method receives external input but lacks proper input validation, the CWE-601 vulnerability is identified.
+
+
+Quark Script: CWE-601.py
+========================
+
+.. image:: https://i.postimg.cc/g0HTwdFF/2025-10-08-1-16-15.png
 
 .. code-block:: python
 
