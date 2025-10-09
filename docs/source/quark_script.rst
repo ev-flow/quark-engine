@@ -2920,7 +2920,7 @@ We use the `ovaa.apk <https://github.com/oversecured/ovaa>`_ sample to explain t
 CWE-601 Detection Process Using Quark Script API
 =================================================
 
-.. image:: https://i.postimg.cc/T2tv7V4N/2025-10-08-1-14-40.png
+.. image:: https://i.postimg.cc/q75yxptk/2025-10-09-9-14-34.png
 
 Let’s use the above APIs to show how the Quark script finds this vulnerability.
 
@@ -2930,7 +2930,7 @@ To detect the vulnerability, we use the API ``findMethodInAPK(samplePath, target
 Quark Script: CWE-601.py
 ========================
 
-.. image:: https://i.postimg.cc/g0HTwdFF/2025-10-08-1-16-15.png
+.. image:: https://i.postimg.cc/wTwvm0Rm/2025-10-09-9-18-38.png
 
 .. code-block:: python
 
