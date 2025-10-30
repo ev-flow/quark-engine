@@ -971,12 +971,19 @@ We use the `dvba.apk <https://github.com/rewanthtammana/Damn-Vulnerable-Bank>`_ 
 
 .. image:: https://imgur.com/KoOt5ii.jpg
 
-Quark Script: CWE-926.py
+CWE-926 Detection Process Using Quark Script API
 ========================
+
+.. image:: https://i.postimg.cc/Qtg97yD0/jie-tu-2025-10-30-wan-shang7-30-04.png
 
 Let's use the above APIs to show how the Quark script finds this vulnerability.
 
 First, we use Quark API ``getActivities(samplePath)`` to get all activity data in the manifest. Then, we use ``activityInstance.hasIntentFilter()`` to check if the activities have ``intent-filter``. Also, we use ``activityInstance.isExported()`` to check if the activities set the attribute ``android:exported=true``. If both are **true**, then the APK exports the component for use by other applications. That may cause CWE-926 vulnerabilities.
+
+Quark Script: CWE-926.py
+========================
+
+.. image:: https://i.postimg.cc/KcwSLv9L/jie-tu-2025-10-30-wan-shang7-32-01.png
 
 .. code-block:: python
 
