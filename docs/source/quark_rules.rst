@@ -851,3 +851,88 @@ The table below lists the APKs we tested.
      - f46b863952599b91a4d2d682a80f345dfa03fad473d1938f2c53a3139c87a019
    * - 10
      - eec5096dfca6824317863f9225c29f6c4b3442c48fefa62dc382e3569bca5a60
+
+
+New Quark Rules For DawDropper
+===============================
+
+New Quark rules (#243 - #245) are now available. These rules target `DawDropper <https://www.trendmicro.com/en_us/research/22/g/examining-new-dawdropper-banking-dropper-and-daas-on-the-dark-we.html>`_\ , a malware family that downloads and installs additional APKs. Check `here <https://github.com/ev-flow/quark-rules>`_ for the rule details.
+
+With these rules, Quark is now able to identify the DawDropper malware family as high-risk. In our experiment, Quark achieved 100% accuracy and 100% precision. Please check :ref:`here <list-of-tested-apks-dawdropper>` for the APKs we tested.
+
+Below is a summary report of a DawDropper sample (\ ``a1298cc00605c79679f72b22d5c9c8e5c8557218458d6a6bd152b2c2514810eb``\ ). The report shows that Quark identified the sample as high-risk, with a list of behaviors as evidence.
+
+
+.. image:: https://i.postimg.cc/44T6JT3v/Screenshot-2025-10-21-22-38-20.png
+   :target: https://i.postimg.cc/44T6JT3v/Screenshot-2025-10-21-22-38-20.png
+   :alt:
+
+
+Identified Well-Known Threats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With Quark's `rule classification <https://quark-engine.readthedocs.io/en/latest/quark_reports.html#rule-classification>`_ feature, analysts can generate behavior maps and see how behaviors are related. This feature helps identify two well-known threats from DawDropper, as shown below.
+
+**1. Download APKs from remote servers**
+
+
+.. image:: https://i.postimg.cc/VLW5TKMP/downloadapk.png
+   :target: https://i.postimg.cc/VLW5TKMP/downloadapk.png
+   :alt:
+
+
+The behavior map shows that the ``Lcom/techmediapro/photoediting/core/MainActivity;N0`` function downloads a file from a URL. If the URL points to an APK, it indicates that the function downloads an additional APK from a remote server.
+
+Behaviors detected by Quark:
+
+
+* Connect to a URL and read data from it (#00243)
+* Write data to a file (#00244)
+
+**2. Install additional APKs**
+
+
+.. image:: https://i.postimg.cc/nc663z2H/installapk.png
+   :target: https://i.postimg.cc/nc663z2H/installapk.png
+   :alt:
+
+
+The behavior map shows that the ``Lcom/techmediapro/photoediting/core/MainActivity;S0`` function installs additional APKs.
+
+Behaviors detected by Quark:
+
+
+* Install other APKs from file (#00245)
+
+.. _list-of-tested-apks-dawdropper:
+
+List of Tested APKs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The table below lists the APKs we tested.
+
+.. list-table::
+   :header-rows: 1
+
+   * - index
+     - sha256
+   * - 1
+     - 022a01566d6033f6d90ab182c4e69f80a3851565aaaa386c8fa1a9435cb55c91
+   * - 2
+     - 02499a198a8be5e203b7929287115cc84d286fc6afdb1bc84f902e433a7961e4
+   * - 3
+     - 05b3e4071f62763b3925fca9db383aeaad6183c690eecbbf532b080dfa6a5a08
+   * - 4
+     - 71c44a78cd77a8f5767096f268c3193108ac06ff3779c65e78bc879d3b0ff11d
+   * - 5
+     - 77f226769eb1a886606823d5b7832d92f678f0c2e1133f3bbee939b256c398aa
+   * - 6
+     - 8fef8831cbc864ffe16e281b0e4af8e3999518c15677866ac80ffb9495959637
+   * - 7
+     - 9b2064f8808d3aaa2d3dc9f5c7ee0775b29e29df3a958466a8953f148b702461
+   * - 8
+     - a1298cc00605c79679f72b22d5c9c8e5c8557218458d6a6bd152b2c2514810eb
+   * - 9
+     - b4bd13770c3514596dd36854850a9507e5734374083a0e4299c697b6c9b9ec58
+   * - 10
+     - d5ac8e081298e3b14b41f2134dae68535bcf740841e75f91754d3d0c0814ed42
