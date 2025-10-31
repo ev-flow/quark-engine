@@ -972,7 +972,7 @@ We use the `dvba.apk <https://github.com/rewanthtammana/Damn-Vulnerable-Bank>`_ 
 .. image:: https://imgur.com/KoOt5ii.jpg
 
 CWE-926 Detection Process Using Quark Script API
-========================
+================================================
 
 .. image:: https://i.postimg.cc/Qtg97yD0/jie-tu-2025-10-30-wan-shang7-30-04.png
 
