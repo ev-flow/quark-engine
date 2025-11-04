@@ -1,3 +1,20 @@
+quark-engine (25.11.1-0kali1) kali-dev; urgency=medium
+
+  * New Feature
+
+    - Add Quark script showcase of detecting CWE-927. (#807)
+
+  * Document Enhancement
+
+    - Optimize the document of Quark Script CWE-925. (#808)
+    - Add an analysis report for the SpyNote malware family. (#813)
+
+  * CI Update
+
+    - Switch the CI trigger from pull_request to pull_request_target for pytest. (#815)
+
+ --  Zin Wong <chriswangxxxxx@gmail.com>  Tue, 04 Nov 2025 23:17:47 +0800
+
 quark-engine (25.10.1-0kali1) kali-dev; urgency=medium
 
   * New Feature
