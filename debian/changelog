@@ -1,19 +1,15 @@
 quark-engine (25.11.1-0kali1) kali-dev; urgency=medium
 
-  * New Feature
+  * Rule Enhancement
 
-    - Add Quark script showcase of detecting CWE-927. (#807)
+    - Add 3 new rules for the DawDropper malware family (#822)
 
   * Document Enhancement
 
-    - Optimize the document of Quark Script CWE-925. (#808)
-    - Add an analysis report for the SpyNote malware family. (#813)
+    - Optimize the document of Quark Script CWE-601 and CWE-926. (#821, #823)
+    - Add an analysis report for the DawDropper malware family. (#822)
 
-  * CI Update
-
-    - Switch the CI trigger from pull_request to pull_request_target for pytest. (#815)
-
- --  Zin Wong <chriswangxxxxx@gmail.com>  Tue, 04 Nov 2025 23:17:47 +0800
+ --  Shaun Dang <pulorsok@gmail.com>  Wed, 05 Nov 2025 10:01:47 +0800
 
 quark-engine (25.10.1-0kali1) kali-dev; urgency=medium
 
