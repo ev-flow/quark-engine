@@ -254,28 +254,17 @@ RegisterObject(quark.Objects.registerobject)
 ============================================
 
 RegisterObject is used to record the state of each register. Each initialized
-registerobject will have register_name, value, called_by_func in a single
-instance.
+registerobject will have value and called_by_func in a single instance.
 
 .. image:: https://i.imgur.com/k5nHprC.png
 
 
-==============    ==========   =================================================
-register_name      value       called_by_func
-==============    ==========   =================================================
-"v3"               "GPS"       Lcom/google/progress/APNOperator;->deleteAPN()Z
-==============    ==========   =================================================
-
-**register_name**: register name, such as "v3", "v4".
+==========   =================================================
+ value       called_by_func
+==========   =================================================
+ "GPS"       Lcom/google/progress/APNOperator;->deleteAPN()Z
+==========   =================================================
 
 **value**: the value stored in the register.
 
 **called_by_func**: what functions are called with this register as a parameter.
-
-
-Explanation of each function
-----------------------------
-
-    * **hash_index**:
-
-        - Get the index number from given VarabileObject, given "v34" will return 34.

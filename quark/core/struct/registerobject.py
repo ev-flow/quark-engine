@@ -7,27 +7,24 @@ class RegisterObject:
     """The RegisterObject is used to record the state of each register"""
 
     __slots__ = [
-        "_register_name",
         "_value",
         "_called_by_func",
         "_current_type",
         "_type_history",
     ]
 
-    def __init__(self, register_name, value, called_by_func=None, value_type=None):
+    def __init__(self, value, called_by_func=None, value_type=None):
         """
         A data structure for creating the bytecode variable object, which
         used to record the state of each register.
 
-        +================+========+==================+
-        | register_name  | value | called_by_func    |
-        +================+========+==================+
+        +========+==================+
+        | value | called_by_func    |
+        +========+==================+
 
-        :param register_name:
         :param value:
         :param called_by_func:
         """
-        self._register_name = register_name
         self._value = value
         self._current_type = value_type
         self._type_history = []
@@ -36,13 +33,12 @@ class RegisterObject:
             self._called_by_func.append(called_by_func)
 
     def __repr__(self):
-        return f"<VarabileObject-register:{self._register_name}, value:{self._value}, called_by_func:{','.join(self._called_by_func)}, current_type:{self._value_type}>"
+        return f"<VarabileObject-value:{self._value}, called_by_func:{','.join(self._called_by_func)}, current_type:{self._current_type}>"
 
     def __eq__(self, obj):
         return (
             isinstance(obj, RegisterObject)
             and obj.called_by_func == self.called_by_func
-            and obj.register_name == self.register_name
             and obj.value == self.value
             and obj.current_type == self.current_type
         )
@@ -66,25 +62,6 @@ class RegisterObject:
         """
         self._called_by_func.append(called_by_func)
         self._type_history.append(self._current_type)
-
-    @property
-    def register_name(self):
-        """
-        Individual register name, for example 'v3'.
-
-        :return: a string of register name
-        """
-        return self._register_name
-
-    @register_name.setter
-    def register_name(self, reg_name):
-        """
-        Setter of register_name.
-
-        :param reg_name:
-        :return: None
-        """
-        self._register_name = reg_name
 
     @property
     def value(self):
@@ -123,15 +100,14 @@ class RegisterObject:
     def type_histroy(self):
         return self._type_history
 
-    @property
-    def hash_index(self):
+    def bears_object(self) -> bool:
         """
-        Get the index number from given VarabileObject.
+        Check whether the register bears an object.
 
-        :return: an integer corresponding to the register index
+        :return: True if the register bears an object, False otherwise
+        :rtype: bool
         """
-        return int(self.register_name[1:])
-
+        return self.current_type is not None and self.current_type.startswith("L")
 
 if __name__ == "__main__":
     pass

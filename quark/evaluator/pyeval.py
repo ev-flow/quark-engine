@@ -216,12 +216,25 @@ class PyEval:
         index = int(reg[1:])
         try:
             pre_ret = self.ret_stack.pop()
-            variable_object = RegisterObject(reg, pre_ret, value_type=self.ret_type)
+            variable_object = RegisterObject(
+                value=pre_ret, value_type=self.ret_type
+            )
             self.table_obj.insert(index, variable_object)
             self.ret_type = ""
         except IndexError as e:
 
             log.exception(f"{e} in _move_result")
+
+    def _move_object(self, src_reg_idx: int, dest_reg_idx: int):
+        """
+        Move object from src_reg_idx to dest_reg_idx without creating new
+        RegisterObject. This allow both registers to point to the same object.
+        """
+        # Get the source object from the table
+        src_obj = self.table_obj.pop(src_reg_idx)
+
+        # Insert the source object to the destination register.
+        self.table_obj.insert(dest_reg_idx, src_obj)
 
     def _assign_value(self, instruction, value_type=""):
 
@@ -229,7 +242,7 @@ class PyEval:
         value = instruction[2]
         index = int(reg[1:])
 
-        variable_object = RegisterObject(reg, value, value_type=value_type)
+        variable_object = RegisterObject(value=value, value_type=value_type)
         self.table_obj.insert(index, variable_object)
 
     def _assign_value_wide(self, instruction, value_type=""):
@@ -239,10 +252,9 @@ class PyEval:
         reg = instruction[1]
         value = instruction[2]
         index = int(reg[1:])
-        reg_plus_one = f"v{index + 1}"
 
-        variable_object = RegisterObject(reg, value, value_type=value_type)
-        variable_object2 = RegisterObject(reg_plus_one, value, value_type=value_type)
+        variable_object = RegisterObject(value=value, value_type=value_type)
+        variable_object2 = RegisterObject(value=value, value_type=value_type)
         self.table_obj.insert(index, variable_object)
         self.table_obj.insert(index + 1, variable_object2)
 
@@ -337,9 +349,9 @@ class PyEval:
         index = int(reg[1:])
         try:
             pre_ret = self.ret_stack.pop()
-            variable_object = RegisterObject(reg, pre_ret, value_type=self.ret_type)
+            variable_object = RegisterObject(value=pre_ret, value_type=self.ret_type)
             variable_object2 = RegisterObject(
-                f"v{index + 1}", pre_ret, value_type=self.ret_type
+                value=pre_ret, value_type=self.ret_type
             )
             self.table_obj.insert(index, variable_object)
             self.table_obj.insert(index + 1, variable_object2)
@@ -505,6 +517,13 @@ class PyEval:
     @logger
     def MOVE_KIND(self, instruction):
         try:
+            if instruction[0].startswith("move-object"):
+                self._move_object(
+                    src_reg_idx=int(instruction[2][1:]),
+                    dest_reg_idx=int(instruction[1][1:]),
+                )
+                return
+
             wide = "wide" in instruction[0]
             self._move_value_to_register(instruction, "{src0}", wide=wide)
         except IndexError as e:
@@ -731,8 +750,7 @@ class PyEval:
                 value_dict["data"] = data
 
                 new_register = RegisterObject(
-                    f"v{source}",
-                    str_format.format(**value_dict),
+                    value=str_format.format(**value_dict),
                     value_type=value_type,
                 )
                 self.table_obj.insert(source, new_register)
@@ -782,8 +800,7 @@ class PyEval:
         value_dict["data"] = data
 
         new_register = RegisterObject(
-            f"v{destination}",
-            str_format.format(**value_dict),
+            value=str_format.format(**value_dict),
             value_type=value_type,
         )
 
