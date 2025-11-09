@@ -183,6 +183,12 @@ class PyEval:
                 var_obj = self.table_obj.pop(index)
                 value_of_reg_list.append(var_obj.value)
 
+        # Remove duplicate parameter values to save memory
+        for value_idx in range(len(value_of_reg_list)):
+            for check_idx in range(value_idx + 1, len(value_of_reg_list)):
+                if value_of_reg_list[value_idx] == value_of_reg_list[check_idx]:
+                    value_of_reg_list[check_idx] = f"<ref_{value_idx}>"
+
         invoked_state = f"{executed_fuc}({','.join(value_of_reg_list)})"
 
         # insert the function and the parameter into called_by_func
@@ -194,14 +200,11 @@ class PyEval:
                 var_obj = self.table_obj.pop(index)
                 var_obj.called_by_func = invoked_state
 
-        if instruction[0].startswith('invoke') and not instruction[0].endswith("static"):
-            # push the return value into the instance
-            reg_idx_to_object = int(reg_list[0][1:])
-
-            obj_stack = self.table_obj.get_obj_list(reg_idx_to_object)
-            if obj_stack:
-                var_obj = self.table_obj.pop(reg_idx_to_object)
-                var_obj.value = invoked_state
+                if var_obj.bears_object():
+                    # If the register bears an object, update its value to
+                    # reflect the method invocation since the method may modify
+                    # the internal state of the object.
+                    var_obj.value = invoked_state
 
         if not executed_fuc.endswith(")V"):
             # push the return value into ret_stack
