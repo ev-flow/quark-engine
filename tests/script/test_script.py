@@ -521,7 +521,7 @@ def testCheckMethodCalls(SAMPLE_PATH_14d9f) -> None:
         "(Ljava/lang/String; Ljava/lang/String;)I"
     ]))
 
-    assert checkMethodCalls("14d9f1a92dd984d6040cc41ed06e273e.apk", targetMethod, checkMethods) is True
+    assert checkMethodCalls(SAMPLE_PATH_14d9f, targetMethod, checkMethods) is True
 
 
 def testFindMethodImpls(SAMPLE_PATH_pivaa) -> None:
