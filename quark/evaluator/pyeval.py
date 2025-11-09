@@ -42,13 +42,19 @@ class PyEval:
         self.eval = {
             # invoke-kind
             "invoke-virtual": self.INVOKE_VIRTUAL,
+            "invoke-virtual/range": self.INVOKE_VIRTUAL,
             "invoke-direct": self.INVOKE_DIRECT,
+            "invoke-direct/range": self.INVOKE_DIRECT,
             "invoke-static": self.INVOKE_STATIC,
-            "invoke-virtual/range": self.INVOKE_VIRTUAL_RANGE,
+            "invoke-static/range": self.INVOKE_STATIC,
             "invoke-interface": self.INVOKE_INTERFACE,
+            "invoke-interface/range": self.INVOKE_INTERFACE,
             "invoke-super": self.INVOKE_SUPER,
+            "invoke-super/range": self.INVOKE_SUPER,
             "invoke-polymorphic": self.INVOKE_POLYMORPHIC,
+            "invoke-polymorphic/range": self.INVOKE_POLYMORPHIC,
             "invoke-custom": self.INVOKE_CUSTOM,
+            "invoke-custom/range": self.INVOKE_CUSTOM,
             # move-result-kind
             "move-result": self.MOVE_RESULT,
             "move-result-wide": self.MOVE_RESULT_WIDE,
@@ -244,6 +250,7 @@ class PyEval:
     def INVOKE_VIRTUAL(self, instruction):
         """
         invoke-virtual { parameters }, methodtocall
+        invoke-virtual/range { parameters }, methodtocall
 
         Invokes a virtual method with parameters.
         """
@@ -253,6 +260,7 @@ class PyEval:
     def INVOKE_DIRECT(self, instruction):
         """
         invoke-direct { parameters }, methodtocall
+        invoke-direct/range { parameters }, methodtocall
 
         Invokes a method with parameters without the virtual method resolution. (first parameter is "this")
         """
@@ -262,23 +270,18 @@ class PyEval:
     def INVOKE_STATIC(self, instruction):
         """
         invoke-static {parameters}, methodtocall
+        invoke-static/range {parameters}, methodtocall
 
         Invokes a static method with parameters.
         """
         self._invoke(instruction)
 
     @logger
-    def INVOKE_VIRTUAL_RANGE(self, instruction):
-        """
-        invoke-virtual/range { parameters }, methodtocall
-        Invokes a virtual-range method with parameters.
-        """
-        self._invoke(instruction, look_up=True)
-
-    @logger
     def INVOKE_INTERFACE(self, instruction):
         """
         invoke-interface { parameters }, methodtocall
+        invoke-interface/range { parameters }, methodtocall
+        
         Invokes a interface method with parameters.
         """
         self._invoke(instruction, look_up=True)
@@ -286,15 +289,29 @@ class PyEval:
     @logger
     def INVOKE_SUPER(self, instruction):
         """
-        invoke-interface { parameters }, methodtocall
-        Invokes a interface method with parameters.
+        invoke-super { parameters }, methodtocall
+        invoke-super/range { parameters }, methodtocall
+        
+        Invokes a super method with parameters.
         """
         self._invoke(instruction, look_up=True, skip_self=True)
 
     def INVOKE_POLYMORPHIC(self, instruction):
+        """
+        invoke-polymorphic { parameters }, methodtocall
+        invoke-polymorphic/range { parameters }, methodtocall
+        
+        Invokes a polymorphic method with parameters.
+        """
         self._invoke(instruction)
 
     def INVOKE_CUSTOM(self, instruction):
+        """
+        invoke-custom { parameters }, callsite
+        invoke-custom/range { parameters }, callsite
+        
+        Invokes a call site with parameters.
+        """
         self._invoke(instruction)
 
     @logger

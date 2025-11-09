@@ -376,6 +376,21 @@ class TestPyEval:
         ]
         assert pyeval.ret_type == "Z"
 
+    def test_invoke_virtual_range_with_valid_mnemonic(self, pyeval):
+        instruction = [
+            "invoke-virtual/range",
+            "v4",
+            "v9",
+            (
+                "Landroid/support/v4/util/ArrayMap;"
+                "->entrySet()Ljava/util/Set;(ArrayMap object)"
+            ),
+        ]
+
+        with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
+            pyeval.INVOKE_VIRTUAL(instruction)
+            mock.assert_called_once_with(instruction, look_up=True)
+
     # Tests for invoke_direct
     def test_invoke_direct_with_valid_mnemonic(self, pyeval):
         instruction = [
@@ -392,10 +407,40 @@ class TestPyEval:
             pyeval.INVOKE_DIRECT(instruction)
             mock.assert_called_once_with(instruction)
 
+    def test_invoke_direct_range_with_valid_mnemonic(self, pyeval):
+        instruction = [
+            "invoke-direct/range",
+            "v4",
+            "v9",
+            (
+                "Landroid/support/v4/util/ArrayMap;"
+                "->entrySet()Ljava/util/Set;(ArrayMap object)"
+            ),
+        ]
+
+        with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
+            pyeval.INVOKE_DIRECT(instruction)
+            mock.assert_called_once_with(instruction)
+
     # Tests for invoke_static
     def test_invoke_static_with_valid_mnemonic(self, pyeval):
         instruction = [
             "invoke-static",
+            "v4",
+            "v9",
+            (
+                "Landroid/support/v4/util/ArrayMap;"
+                "->entrySet()Ljava/util/Set;(ArrayMap object)"
+            ),
+        ]
+
+        with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
+            pyeval.INVOKE_STATIC(instruction)
+            mock.assert_called_once_with(instruction)
+
+    def test_invoke_static_range_with_valid_mnemonic(self, pyeval):
+        instruction = [
+            "invoke-static/range",
             "v4",
             "v9",
             (
@@ -441,6 +486,21 @@ class TestPyEval:
         ]
         assert pyeval.ret_type == "Ljava/util/Set;"
 
+    def test_invoke_interface_range_with_valid_mnemonic(self, pyeval):
+        instruction = [
+            "invoke-interface/range",
+            "v4",
+            "v9",
+            (
+                "Landroid/support/v4/util/ArrayMap;"
+                "->entrySet()Ljava/util/Set;(ArrayMap object)"
+            ),
+        ]
+
+        with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
+            pyeval.INVOKE_INTERFACE(instruction)
+            mock.assert_called_once_with(instruction, look_up=True)
+
     # Tests for invoke-super
     def test_invoke_super_with_valid_mnemonic(self, pyeval):
         instruction = ["invoke-super", "v4", "v9", "some_function()V"]
@@ -468,6 +528,15 @@ class TestPyEval:
         ]
         assert pyeval.ret_type == "Ljava/lang/String;"
 
+    def test_invoke_super_range_with_valid_mnemonic(self, pyeval):
+        instruction = ["invoke-super/range", "v4", "v9", "some_function()V"]
+
+        with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
+            pyeval.INVOKE_SUPER(instruction)
+            mock.assert_called_once_with(
+                instruction, look_up=True, skip_self=True
+            )
+
     # Tests for invoke polymorphic
     def test_invoke_polymorphic_with_valid_mnemonic(self, pyeval):
         instruction = [
@@ -482,9 +551,28 @@ class TestPyEval:
             pyeval.INVOKE_POLYMORPHIC(instruction)
             mock.assert_called_once_with(instruction)
 
+    def test_invoke_polymorphic_range_with_valid_mnemonic(self, pyeval):
+        instruction = [
+            "invoke-polymorphic/range",
+            "v4",
+            "v9",
+            "some_function()V",
+            "prototype_idx",
+        ]
+
+        with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
+            pyeval.INVOKE_POLYMORPHIC(instruction)
+            mock.assert_called_once_with(instruction)
+
     # Tests for invoke-custom
     def test_invoke_custom_with_valid_mnemonic(self, pyeval):
         instruction = ["invoke-custom", "v4", "v9", "method"]
+        with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
+            pyeval.INVOKE_CUSTOM(instruction)
+            mock.assert_called_once_with(instruction)
+
+    def test_invoke_custom_range_with_valid_mnemonic(self, pyeval):
+        instruction = ["invoke-custom/range", "v4", "v9", "method"]
         with patch("quark.evaluator.pyeval.PyEval._invoke") as mock:
             pyeval.INVOKE_CUSTOM(instruction)
             mock.assert_called_once_with(instruction)
