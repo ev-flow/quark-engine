@@ -7,7 +7,7 @@ Build-Depends: debhelper-compat (= 12),
             dh-virtualenv (>= 0.8),
             python3,
 
-Standards-Version: 25.10.1
+Standards-Version: 25.11.1
 Homepage: https://github.com/quark-engine/quark-engine
 Vcs-Browser: https://github.com/quark-engine/quark-engine
 Vcs-Git: https://github.com/quark-engine/quark-engine

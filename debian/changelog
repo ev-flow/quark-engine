@@ -1,3 +1,16 @@
+quark-engine (25.11.1-0kali1) kali-dev; urgency=medium
+
+  * Rule Enhancement
+
+    - Add 3 new rules for the DawDropper malware family (#822)
+
+  * Document Enhancement
+
+    - Optimize the document of Quark Script CWE-601 and CWE-926. (#821, #823)
+    - Add an analysis report for the DawDropper malware family. (#822)
+
+ --  Shaun Dang <pulorsok@gmail.com>  Wed, 05 Nov 2025 10:01:47 +0800
+
 quark-engine (25.10.1-0kali1) kali-dev; urgency=medium
 
   * New Feature
