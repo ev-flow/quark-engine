@@ -1189,12 +1189,19 @@ We use the `MSTG-Android-Java.apk <https://github.com/OWASP/MASTG-Hacking-Playgr
 
 .. image:: https://imgur.com/c03senv.png
 
-Quark Script: CWE-780.py
-========================
+CWE-780 Detection Process Using Quark Script API
+=================================================
+
+.. image:: https://i.postimg.cc/x8zTSxpq/jie-tu-2025-11-14-shang-wu10-30-26.png
 
 Let’s use the above APIs to show how the Quark script finds this vulnerability.
 
 We first design a detection rule ``useOfCryptographicAlgo.json`` to spot on behavior using the cryptographic algorithm. Then, we use API ``behaviorInstance.hasString(pattern, isRegex)`` to filter behaviors using the RSA algorithm. Finally, we use the same API to check if the algorithm runs without the OAEP scheme. If the answer is YES, the plaintext is predictable.
+
+Quark Script: CWE-780.py
+=========================
+
+.. image:: https://i.postimg.cc/fTYxNZP6/jie-tu-2025-11-14-shang-wu10-31-55.png
 
 .. code-block:: python
 
