@@ -2734,8 +2734,10 @@ We use the `ovaa.apk <https://github.com/oversecured/ovaa>`_ sample to explain t
 
 .. image:: https://imgur.com/1zP5xkN.png
 
-Quark Script: CWE-940.py
-=========================
+CWE-940 Detection Process Using Quark Script API
+=================================================
+
+.. image:: https://i.postimg.cc/1XGWt89Q/jie-tu-2025-11-21-xia-wu4-46-36.png
 
 Let’s use the above APIs to show how the Quark script finds this vulnerability.
 
@@ -2744,6 +2746,11 @@ To begin with, we create a detection rule named ``LoadUrlFromIntent.json`` to id
 Next, we retrieve the methods that pass the URL. Then, we check if these methods are only for getting the URL, such as ``findViewById``, ``getStringExtra``, or ``getIntent``.
 
 If **YES**, it could imply that the APK uses communication channels without proper verification, which may cause CWE-940 vulnerability.
+
+Quark Script: CWE-940.py
+=========================
+
+.. image:: https://i.postimg.cc/pLTZNG5J/jie-tu-2025-11-21-xia-wu4-47-11.png
 
 .. code-block:: python
 
