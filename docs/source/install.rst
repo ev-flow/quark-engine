@@ -13,6 +13,10 @@ Install from Source::
     $ pipenv install --skip-lock
     $ pipenv shell
 
+Download the latest rules::
+
+    $ freshquark
+
 Run the help cmd of quark::
 
     $ quark --help
