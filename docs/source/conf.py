@@ -22,7 +22,7 @@ copyright = 'Quark-Engine Team'
 author = 'KunYu Chen, JunWei Song, YuShiang Dang, ShengFone Lu, AnWei Kung, ShunTe Lin, Vivek, Krishna'
 
 # The full version, including alpha/beta/rc tags
-release = 'v25.11.1'
+release = 'v25.12.1'
 
 # -- General configuration ---------------------------------------------------
 
