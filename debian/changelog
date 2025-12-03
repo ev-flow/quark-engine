@@ -1,22 +1,15 @@
 quark-engine (25.12.1-0kali1) kali-dev; urgency=medium
 
+  * Rule Enhancement
+
+    - Add 1 new rules for the SLocker malware family (#832)
+
   * Document Enhancement
 
-    - Add freshquark command to installation instructions. (#835)
-
-    - Add docs for SLocker. (#832)
-
+    - Add an analysis report for the SLocker malware family. (#832)
     - Optimize the document of Quark Script CWE-780 and CWE-940. (#829, #831)
 
-  * Test Enhancement
-
-    - Update macOS runner in smoke test. (#834)
-
-  * Bug Fix
-
-    - Fix behavior not detected in Slocker malware family. (#828)
-
- --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 01 Dec 2025 10:27:59 +0800
+ --  Shaun Dang <pulorsok@gmail.com>  Wed, 03 Dec 2025 10:27:59 +0800
 
 quark-engine (25.11.1-0kali1) kali-dev; urgency=medium
 
