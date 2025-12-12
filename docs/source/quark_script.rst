@@ -1030,7 +1030,7 @@ We use the `MSTG-Android-Java.apk <https://github.com/OWASP/MASTG-Hacking-Playgr
 CWE-749 Detection Process Using Quark Script API
 ================================================
 
-.. image:: https://i.postimg.cc/BvhcVXtb/jie-tu-2025-12-12-xia-wu2-47-18.png
+.. image:: https://i.postimg.cc/xjWjXH3P/jie-tu-2025-12-12-wan-shang11-01-40.png
 
 Let’s use the above APIs to show how the Quark script finds this vulnerability.
 
@@ -1039,7 +1039,7 @@ First, we design a detection rule ``configureJsExecution.json`` to spot on behav
 Quark Script: CWE-749.py
 ========================
 
-.. image:: https://i.postimg.cc/m2Rz7T2p/jie-tu-2025-12-12-xia-wu2-50-11.png
+.. image:: https://i.postimg.cc/TwKGwYyH/jie-tu-2025-12-12-wan-shang11-02-28.png
 
 .. code-block:: python
 
