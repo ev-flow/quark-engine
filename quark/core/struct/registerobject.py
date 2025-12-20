@@ -9,8 +9,7 @@ class RegisterObject:
     __slots__ = [
         "_value",
         "_called_by_func",
-        "_current_type",
-        "_type_history",
+        "_current_type"
     ]
 
     def __init__(self, value, called_by_func=None, value_type=None):
@@ -27,7 +26,6 @@ class RegisterObject:
         """
         self._value = value
         self._current_type = value_type
-        self._type_history = []
         self._called_by_func = []
         if called_by_func is not None:
             self._called_by_func.append(called_by_func)
@@ -61,7 +59,6 @@ class RegisterObject:
         :return: None
         """
         self._called_by_func.append(called_by_func)
-        self._type_history.append(self._current_type)
 
     @property
     def value(self):
@@ -95,10 +92,6 @@ class RegisterObject:
     @current_type.setter
     def current_type(self, value):
         self._current_type = value
-
-    @property
-    def type_histroy(self):
-        return self._type_history
 
     def bears_object(self) -> bool:
         """
