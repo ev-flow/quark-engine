@@ -3,6 +3,15 @@
 # See the file 'LICENSE' for copying permission.
 
 
+from typing import Generator
+
+from quark.core.struct.valuenode import (
+    MethodCall,
+    ValueNode,
+    iteratePriorCalls,
+)
+
+
 class RegisterObject:
     """The RegisterObject is used to record the state of each register"""
 
@@ -12,7 +21,12 @@ class RegisterObject:
         "_current_type"
     ]
 
-    def __init__(self, value, called_by_func=None, value_type=None):
+    def __init__(
+        self,
+        value: ValueNode,
+        called_by_func: ValueNode | None = None,
+        value_type=None,
+    ):
         """
         A data structure for creating the bytecode variable object, which
         used to record the state of each register.
@@ -31,7 +45,11 @@ class RegisterObject:
             self._called_by_func.append(called_by_func)
 
     def __repr__(self):
-        return f"<VarabileObject-value:{self._value}, called_by_func:{','.join(self._called_by_func)}, current_type:{self._current_type}>"
+        return (
+            f"<RegisterObject-value:{self._value},"
+            f" called_by_func:{','.join(self._called_by_func)},"
+            f" current_type:{self._current_type}>"
+        )
 
     def __eq__(self, obj):
         return (
@@ -101,6 +119,14 @@ class RegisterObject:
         :rtype: bool
         """
         return self.current_type is not None and self.current_type.startswith("L")
+
+    def iterateInvolvedCalls(self) -> Generator[MethodCall, None, None]:
+        """
+        Yield all method calls involved by this register.
+        """
+        for call in self._called_by_func:
+            yield from iteratePriorCalls(call)
+
 
 if __name__ == "__main__":
     pass
