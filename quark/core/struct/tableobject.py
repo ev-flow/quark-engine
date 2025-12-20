@@ -2,6 +2,9 @@
 # This file is part of Quark-Engine - https://github.com/quark-engine/quark-engine
 # See the file 'LICENSE' for copying permission.
 
+from collections import defaultdict
+from quark.core.struct.registerobject import RegisterObject
+
 
 class TableObject:
     """This table is used to track the usage of variables in the register"""
@@ -33,19 +36,19 @@ class TableObject:
         except IndexError:
             pass
 
-    def get_obj_list(self, index):
+    def getRegValues(self, index: int) -> list[RegisterObject]:
         """
-        Return the list which contains the VariableObject.
+        Return the list which contains the RegisterObject.
 
-        :param index: the index to get the corresponding VariableObject
-        :return: a list containing VariableObject
+        :param index: the index to get the corresponding RegisterObject
+        :return: a list containing RegisterObject
         """
         try:
             return self.hash_table[index]
         except IndexError:
             return None
 
-    def get_table(self):
+    def getTable(self) -> dict[int, list[RegisterObject]]:
         """
         Get the entire hash table.
 
@@ -53,13 +56,12 @@ class TableObject:
         """
         return self.hash_table
 
-    def pop(self, index):
+    def getLatestRegValue(self, index: int) -> RegisterObject:
         """
-        Override the built-in pop function, to get the top element, which
-        is VariableObject on the stack while not delete it.
+        Get the latest RegisterObject for the given index.
 
-        :param index: the index to get the corresponding VariableObject
-        :return: VariableObject
+        :param index: the index to get the corresponding RegisterObject
+        :return: RegisterObject
         """
         return self.hash_table[index][-1]
 
