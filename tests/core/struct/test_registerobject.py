@@ -1,6 +1,7 @@
 import pytest
 
 from quark.core.struct.registerobject import RegisterObject
+from quark.core.struct.valuenode import MethodCall, Primitive
 
 
 @pytest.fixture()
@@ -46,7 +47,7 @@ class TestRegisterObject:
 
         assert reg_with_object.bears_object() is True
         assert reg_with_primitive.bears_object() is False
-        assert reg_with_none.bears_object() is False
+        assert reg_with_none.bears_object() is True
 
     def test_iterate_involved_calls_returns_nested_calls(self):
         inner_call = MethodCall(

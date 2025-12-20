@@ -113,12 +113,13 @@ class RegisterObject:
 
     def bears_object(self) -> bool:
         """
-        Check whether the register bears an object.
+        Check whether the register bears an object or has an unknown type.
 
-        :return: True if the register bears an object, False otherwise
+        :return: True if the register holds an object or its type is unknown;
+        False otherwise.
         :rtype: bool
         """
-        return self.current_type is not None and self.current_type.startswith("L")
+        return self.current_type is None or self.current_type.startswith("L")
 
     def iterateInvolvedCalls(self) -> Generator[MethodCall, None, None]:
         """
