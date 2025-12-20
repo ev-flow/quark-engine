@@ -11,30 +11,21 @@ class TableObject:
 
     __slots__ = ["hash_table"]
 
-    def __init__(self, count_reg):
-        """
-        This table used to store the variable object, which uses a hash table
-        with a stack-based list to generate the bytecode variable tracker table.
-
-        :param count_reg: the maximum number of register to initialize
-        """
-        self.hash_table = [[] for _ in range(count_reg)]
+    def __init__(self):
+        self.hash_table = defaultdict(list)
 
     def __repr__(self):
         return f"<TableObject-{self.hash_table}>"
 
-    def insert(self, index, var_obj):
+    def insert(self, index: int, registerValue: RegisterObject) -> None:
         """
-        Insert VariableObject into the nested list in the hashtable.
+        Insert RegisterObject into the nested list in the hash table.
 
         :param index: the index to insert to the table
-        :param var_obj: instance of VariableObject
+        :param var_obj: instance of RegisterObject
         :return: None
         """
-        try:
-            self.hash_table[index].append(var_obj)
-        except IndexError:
-            pass
+        self.hash_table[index].append(registerValue)
 
     def getRegValues(self, index: int) -> list[RegisterObject]:
         """
@@ -43,10 +34,7 @@ class TableObject:
         :param index: the index to get the corresponding RegisterObject
         :return: a list containing RegisterObject
         """
-        try:
-            return self.hash_table[index]
-        except IndexError:
-            return None
+        return self.hash_table[index]
 
     def getTable(self) -> dict[int, list[RegisterObject]]:
         """
