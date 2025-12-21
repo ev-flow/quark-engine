@@ -5,6 +5,39 @@ import pytest
 from quark.core.struct.ruleobject import RuleObject
 
 
+def build_rule_json(first_keywords=None, second_keywords=None):
+    api_entries = [
+        {
+            "class": "Landroid/telephony/TelephonyManager",
+            "method": "getDeviceId",
+            "descriptor": "()Ljava/lang/String;",
+        },
+        {
+            "class": "Landroid/telephony/SmsManager",
+            "method": "sendTextMessage",
+            "descriptor": "()V",
+        },
+    ]
+
+    if first_keywords is not None:
+        api_entries[0]["match_keywords"] = first_keywords
+
+    if second_keywords is not None:
+        api_entries[1]["match_keywords"] = second_keywords
+
+    return {
+        "crime": "Send Location via SMS",
+        "permission": [
+            "android.permission.SEND_SMS",
+            "android.permission.ACCESS_COARSE_LOCATION",
+            "android.permission.ACCESS_FINE_LOCATION",
+        ],
+        "api": api_entries,
+        "score": 4,
+        "label": ["location", "collection"],
+    }
+
+
 @pytest.fixture()
 def rule_obj(scope="function"):
     rule_json = """
@@ -129,3 +162,37 @@ class TestRuleObject:
     @staticmethod
     def test_java_format_api(rule_obj):
         assert rule_obj.api[1]["descriptor"] == "(I Ljava/lang/String; [B J)V"
+
+    @staticmethod
+    def test_first_api_keywords_returns_list():
+        rule = RuleObject(
+            "dummy.json",
+            jsonData=build_rule_json(first_keywords=["imei", "iccid"]),
+        )
+
+        assert rule.firstApiKeywords == ["imei", "iccid"]
+
+    @staticmethod
+    def test_first_api_keywords_returns_none_when_missing():
+        rule = RuleObject(
+            "dummy.json", jsonData=build_rule_json(first_keywords=[])
+        )
+
+        assert rule.firstApiKeywords is None
+
+    @staticmethod
+    def test_second_api_keywords_returns_list():
+        rule = RuleObject(
+            "dummy.json",
+            jsonData=build_rule_json(second_keywords=["sms", "send"]),
+        )
+
+        assert rule.secondApiKeywords == ["sms", "send"]
+
+    @staticmethod
+    def test_second_api_keywords_returns_none_when_not_a_list():
+        rule = RuleObject(
+            "dummy.json", jsonData=build_rule_json(second_keywords="sms")
+        )
+
+        assert rule.secondApiKeywords is None
