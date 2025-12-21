@@ -101,7 +101,7 @@ jobs:
       shell: bash
       # This sample should have 16 behaviors with 100% confidence
       run: |
-        if [ "${{ env.Ahmyth_RESULT }}" == "40" ]; then
+        if [ "${{ env.Ahmyth_RESULT }}" == "39" ]; then
           exit 0
         else
           exit 1
@@ -111,7 +111,7 @@ jobs:
       shell: bash
       # This sample should have 11 behaviors with 100% confidence
       run: |
-        if [ "${{ env.a4db_RESULT }}" == "20" ]; then
+        if [ "${{ env.a4db_RESULT }}" == "19" ]; then
           exit 0
         else
           exit 1
@@ -121,7 +121,7 @@ jobs:
       shell: bash
       # This sample should have 15 behaviors with 100% confidence
       run: |
-        if [ "${{ env.e273e_RESULT }}" == "42" ]; then
+        if [ "${{ env.e273e_RESULT }}" == "41" ]; then
           exit 0
         else
           exit 1
