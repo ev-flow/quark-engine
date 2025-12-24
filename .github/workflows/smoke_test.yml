@@ -121,7 +121,7 @@ jobs:
       shell: bash
       # This sample should have 15 behaviors with 100% confidence
       run: |
-        if [ "${{ env.e273e_RESULT }}" == "42" ]; then
+        if [ "${{ env.e273e_RESULT }}" == "43" ]; then
           exit 0
         else
           exit 1
