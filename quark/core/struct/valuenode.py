@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 import collections
 from dataclasses import dataclass
 from typing import Any, Generator, Type, TypeVar
+from weakref import WeakValueDictionary
 
 
 @dataclass()
@@ -19,21 +20,34 @@ class ValueNode(ABC):
         default to True
         :return: a string representation of the value
         """
-        return self._recursiveResolve(set(), evaluateArgs)
+        return iterativeResolve(self, evaluateArgs=evaluateArgs)
 
     @abstractmethod
-    def _recursiveResolve(self, visited: set[int], evaluateArgs: bool) -> str:
-        """The internal resolving logic for resolve().
-        `visited` is used to detect and prevent infinite recursion cycles.
+    def _getChildren(self) -> tuple["ValueNode", ...]:
+        """Get the child ValueNodes of this node.
 
-        :param visited: a set of visited ValueNode ids
-        :param evaluateArgs: True to evaluate argument base on its type
-        :return: a string representation of the value
+        :return: a tuple of child ValueNodes
+        """
+        pass
+
+    @abstractmethod
+    def _assembleResolvedString(
+        self, childStrs: tuple[str, ...], evaluateArgs: bool
+    ) -> str:
+        """Assemble the resolved string from child strings.
+
+        :param childStrs: a tuple of resolved child strings
+        :param evaluateArgs: True to evaluate argument base on its type,
+        default to True
+        :return: the assembled resolved string
         """
         pass
 
     def __eq__(self, value: object) -> bool:
-        return id(self) == id(value)
+        return self is value
+
+    def __hash__(self):
+        return id(self)
 
 
 @dataclass(slots=True, eq=False)
@@ -49,11 +63,14 @@ class Primitive(ValueNode):
     def __repr__(self):
         return f"Primitive({self.value!r})"
 
-    def _recursiveResolve(self, _, evaluateArgs: bool) -> Any:
+    def _getChildren(self) -> tuple["ValueNode", ...]:
+        return ()
+
+    def _assembleResolvedString(self, _, evaluateArgs: bool) -> str:
         return (
-            evaluateArgument(self.value, self.value_type)
+            str(evaluateArgument(self.value, self.value_type))
             if evaluateArgs
-            else self.value
+            else str(self.value)
         )
 
 
@@ -70,19 +87,11 @@ class MethodCall(ValueNode):
     def __repr__(self):
         return f"MethodCall({self.method!r}, {self.argumentNodes!r})"
 
-    def _recursiveResolve(self, visited: set[int], evaluateArgs: bool) -> str:
-        if id(self) in visited:
-            return "<...recursion...>"
-        visited.add(id(self))
+    def _getChildren(self) -> tuple["ValueNode", ...]:
+        return self.argumentNodes
 
-        try:
-            valueStrs = []
-            for arg in self.argumentNodes:
-                value = arg._recursiveResolve(visited, evaluateArgs)
-                valueStrs.append(str(value))
-            return f"{self.method}({','.join(valueStrs)})"
-        finally:
-            visited.remove(id(self))
+    def _assembleResolvedString(self, argStrs: tuple[str, ...], _) -> str:
+        return f"{self.method}({','.join(argStrs)})"
 
     def getArguments(self, evaluateArgs: bool = True) -> list[Any]:
         return [
@@ -99,34 +108,85 @@ class MethodCall(ValueNode):
 class BytecodeOps(ValueNode):
     """A ValueNode that represents a bytecode operation (e.g., binop, cast)."""
 
-    str_format: str
+    strFormat: str
     operands: tuple[ValueNode, ...]
     data: Any
 
     def __str__(self):
-        op_name = self.str_format.split("(")[0]
-        return f"<op:{op_name}>"
+        return f"<op:{self.strFormat}>"
 
     def __repr__(self):
-        return f"BytecodeOps({self.str_format!r}, {self.operands!r}, {self.data!r})"
+        return (
+            f"BytecodeOps({self.strFormat!r}, {self.operands!r}, {self.data!r})"
+        )
 
-    def _recursiveResolve(self, visited: set[int], evaluateArgs: bool) -> str:
-        if id(self) in visited:
-            return "<...recursion...>"
-        visited.add(id(self))
+    def _getChildren(self) -> tuple["ValueNode" | Any, ...]:
+        return self.operands
 
-        try:
-            value_dict = {
-                f"src{index}": p._recursiveResolve(visited, evaluateArgs)
-                for index, p in enumerate(self.operands)
-            }
-            value_dict["data"] = str(self.data)
-            return self.str_format.format(**value_dict)
-        finally:
-            visited.remove(id(self))
+    def _assembleResolvedString(self, operandStrs: tuple[str, ...], _) -> str:
+        value_dict = {
+            f"src{index}": value for index, value in enumerate(operandStrs)
+        }
+        value_dict["data"] = str(self.data)
+        return self.strFormat.format(**value_dict)
 
 
 T = TypeVar("T", bound=ValueNode)
+
+__resolvedCache: WeakValueDictionary[int, "StringWrapper"] = (
+    WeakValueDictionary()
+)
+
+
+@dataclass(frozen=True)
+class StringWrapper:
+    value: str
+
+
+def iterativeResolve(node: ValueNode, evaluateArgs: bool) -> str:
+    """Resolve the value node into a string representation.
+
+    :param node: value node to resolve
+    :param evaluateArgs: True to evaluate argument base on its type
+    :return: a string representation of the value
+    """
+    stack = [(node, [])]
+
+    while stack:
+        current, childStrs = stack[-1]
+        children = current._getChildren()
+
+        if len(childStrs) < len(children):
+            # Still has children to process
+            child = children[len(childStrs)]
+
+            cachedValue = __resolvedCache.get(id(child))
+            if cachedValue is not None:
+                # Use cached resolved value
+                childStrs.append(cachedValue.value)
+                continue
+
+            # Update current node to continue with next child later
+            stack.append((child, []))
+            continue
+
+        result = current._assembleResolvedString(
+            tuple(childStrs), evaluateArgs
+        )
+        __resolvedCache[id(current)] = StringWrapper(result)
+
+        # Current node is fully processed, pop from stack
+        stack.pop()
+
+        if not stack:
+            # No parent, this is the root node
+            return result
+
+        # Append result to parent's list
+        _, parentProcessedChildren = stack[-1]
+        parentProcessedChildren.append(result)
+
+    raise RuntimeError("Unreachable code reached in iterativeResolve")
 
 
 def iteratePriorNodes(

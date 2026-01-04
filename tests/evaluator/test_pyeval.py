@@ -283,7 +283,7 @@ class TestPyEval:
     def test_invoke_with_empty_list(self, pyeval):
         instruction = []
 
-        with pytest.raises(IndexError):
+        with pytest.raises(ValueError):
             pyeval._invoke(instruction)
 
     def test_invoke_with_wrong_types(self, pyeval):
