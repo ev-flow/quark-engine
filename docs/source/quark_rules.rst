@@ -1008,3 +1008,104 @@ The table below lists the APKs we tested.
    * - 11
      - f3fcd84b4e92a52ae5b30df003b911f21b2ea4325f788d5a5decc08582d3fd40
 
+
+New Quark Rules For PhantomCard
+===============================
+
+New Quark rules (#247 - #251) are now available. These rules target `PhantomCard <https://www.threatfabric.com/blogs/phantomcard-new-nfc-driven-android-malware-emerging-in-brazil>`_\ , a malware family that communicates with C2 servers, reads the payment data of NFC cards, and captures PINs of NFC cards through deceptive screens. Check `here <https://github.com/ev-flow/quark-rules>`_ for the rule details.
+
+With these rules, Quark is now able to identify the PhantomCard malware family as high-risk. In our experiment, Quark achieved 100% accuracy and 100% precision. Please check :ref:`here <list-of-tested-apks-phantomcard>` for the APKs we tested.
+
+Below is a summary report of a PhantomCard sample (\ ``5769ae3cc93943dda4d1743f2febf6cec1282a0a6289da68cb55bb4724ec9332``\ ). The report shows that Quark identified the sample as high-risk, with a list of behaviors as evidence.
+
+
+.. image:: https://i.postimg.cc/MTm5xxn2/Screenshot-2025-12-19-00-52-13.png
+   :target: https://i.postimg.cc/MTm5xxn2/Screenshot-2025-12-19-00-52-13.png
+   :alt:
+
+
+Identified Well-Known Threats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With Quark's `rule classification <https://quark-engine.readthedocs.io/en/latest/quark_reports.html#rule-classification>`_ feature, analysts can generate behavior maps and see how behaviors are related. This feature helps identify 3 well-known threats from PhantomCard, as shown below.
+
+**1. Communicate with C2 servers**
+
+
+.. image:: https://i.postimg.cc/6qqQcXDG/c2.png
+   :target: https://i.postimg.cc/6qqQcXDG/c2.png
+   :alt:
+
+
+The behavior map reveals that the ``Ls1/j;doInBackground`` function establishes a connection to an IP address, which could be a malicious C2 server.
+
+Behaviors detected by Quark:
+
+
+* Establish a connection to an IP address (#00247)
+
+**2. Read the payment data of NFC cards**
+
+
+.. image:: https://i.postimg.cc/9QFmVVxY/nfc.png
+   :target: https://i.postimg.cc/9QFmVVxY/nfc.png
+   :alt:
+
+
+The behavior map reveals that the ``Lt1/c;b`` function establishes a connection to an NFC card and reads the payment data stored in it.
+
+Behaviors detected by Quark:
+
+
+* Establish a connection to an NFC card (#00248)
+* Read the payment data stored in an NFC card (#00249)
+
+**3. Captures PINs of NFC cards through deceptive screens**
+
+
+.. image:: https://i.postimg.cc/xT2QtP2Y/ui.png
+   :target: https://i.postimg.cc/xT2QtP2Y/ui.png
+   :alt:
+
+
+The behavior map reveals that the ``Le/r;onReceive`` function creates a UI layout and listens for user clicks on a UI element. If the UI layout is deceptive, users could be deceived into entering their NFC card PINs. Subsequently, the app could harvest the PINs by listening for user clicks on UI elements such as keypad buttons.
+
+Behaviors detected by Quark:
+
+
+* Create a UI layout from XML (#00250)
+* Listen for user clicks on a UI element (#00251)
+
+.. _list-of-tested-apks-phantomcard:
+
+List of Tested APKs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The table below lists the APKs we tested.
+
+.. list-table::
+   :header-rows: 1
+
+   * - index
+     - sha256
+   * - 1
+     - 0d5fd1997ecb76a167df753d5cce7688dfd0d813c028c9644025da352af77b7d
+   * - 2
+     - 21c66fe505f2bcd7b29d413189920b3a85df48da0ecf4eb6962d6a504a7fdcd8
+   * - 3
+     - 2922fcf373e2caf3588266cfafeaafbc74304c81d024315d279f0ea537adc1b6
+   * - 4
+     - 360966ad8752d040e9aaae5cb4a5913e6f85edcf56ecfeb8246729b45d0e6c78
+   * - 5
+     - 5769ae3cc93943dda4d1743f2febf6cec1282a0a6289da68cb55bb4724ec9332
+   * - 6
+     - a78ab0c38fc97406727e48f0eb5a803b1edb9da4a39e613f013b3c5b4736262f
+   * - 7
+     - ab2906d88e4f64ec0784ef8fdf132bb7ca9a914c037c3b731803f3adfd7a8f66
+   * - 8
+     - cb10953f39723427d697d06550fae2a330d7fff8fc42e034821e4a4c55f5a667
+   * - 9
+     - d3f863757e946d117ee7c7b50e480264a2ff1a08e7925bd2de3e6c43182868ed
+   * - 10
+     - e27579b92fcad2f4fe96db7b5e7a7cdc41754a7cd126fcaf598d3f8d8c21c0f5
+

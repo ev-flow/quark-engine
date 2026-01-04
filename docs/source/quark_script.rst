@@ -1027,12 +1027,19 @@ We use the `MSTG-Android-Java.apk <https://github.com/OWASP/MASTG-Hacking-Playgr
 
 .. image:: https://imgur.com/KiA0vRD.png
 
-Quark Script CWE-749.py
-===========================
+CWE-749 Detection Process Using Quark Script API
+================================================
+
+.. image:: https://i.postimg.cc/xjWjXH3P/jie-tu-2025-12-12-wan-shang11-01-40.png
 
 Let’s use the above APIs to show how the Quark script finds this vulnerability.
 
 First, we design a detection rule ``configureJsExecution.json`` to spot on behavior using the method ``setJavascriptEnabled``. Then, we use the API ``methodInstance.getArguments()`` to check if it enables JavaScript execution on websites. Finally, we look for calls to the method ``addJavaScriptInterface`` in the caller method. If yes, the APK exposes dangerous methods or functions to websites. That causes CWE-749 vulnerability.
+
+Quark Script: CWE-749.py
+========================
+
+.. image:: https://i.postimg.cc/TwKGwYyH/jie-tu-2025-12-12-wan-shang11-02-28.png
 
 .. code-block:: python
 
@@ -3710,6 +3717,8 @@ Quark Script CWE-927.py
 
 Quark Rule: startActivityWithIntent.json
 ========================================
+
+.. image:: https://i.postimg.cc/YSPCzMmQ/jie-tu-2025-12-20-shang-wu10-29-09.png
 
 .. code-block:: json
 

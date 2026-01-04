@@ -97,11 +97,11 @@ jobs:
         echo "a4db_RESULT=$(quark -a apk-samples/malware-samples/13667fe3b0ad496a0cd157f34b7e0c991d72a4db.apk -s -t 100 | grep 100% | wc -l | awk '{print $1}')" >> $GITHUB_ENV
         echo "e273e_RESULT=$(quark -a apk-samples/malware-samples/14d9f1a92dd984d6040cc41ed06e273e.apk -s -t 100 | grep 100% | wc -l | awk '{print $1}')" >> $GITHUB_ENV
 
-    - name: Check Ahmyt Result
+    - name: Check Ahmyth Result
       shell: bash
       # This sample should have 16 behaviors with 100% confidence
       run: |
-        if [ "${{ env.Ahmyth_RESULT }}" == "39" ]; then
+        if [ "${{ env.Ahmyth_RESULT }}" == "40" ]; then
           exit 0
         else
           exit 1
@@ -111,7 +111,7 @@ jobs:
       shell: bash
       # This sample should have 11 behaviors with 100% confidence
       run: |
-        if [ "${{ env.a4db_RESULT }}" == "19" ]; then
+        if [ "${{ env.a4db_RESULT }}" == "20" ]; then
           exit 0
         else
           exit 1
@@ -121,7 +121,7 @@ jobs:
       shell: bash
       # This sample should have 15 behaviors with 100% confidence
       run: |
-        if [ "${{ env.e273e_RESULT }}" == "40" ]; then
+        if [ "${{ env.e273e_RESULT }}" == "42" ]; then
           exit 0
         else
           exit 1
