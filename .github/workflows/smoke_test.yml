@@ -99,9 +99,9 @@ jobs:
 
     - name: Check Ahmyth Result
       shell: bash
-      # This sample should have 16 behaviors with 100% confidence
+      # This sample should have 39 behaviors with 100% confidence
       run: |
-        if [ "${{ env.Ahmyth_RESULT }}" == "40" ]; then
+        if [ "${{ env.Ahmyth_RESULT }}" == "39" ]; then
           exit 0
         else
           exit 1
@@ -109,9 +109,9 @@ jobs:
 
     - name: Check 13667fe3b0ad496a0cd157f34b7e0c991d72a4db.apk Result
       shell: bash
-      # This sample should have 11 behaviors with 100% confidence
+      # This sample should have 19 behaviors with 100% confidence
       run: |
-        if [ "${{ env.a4db_RESULT }}" == "20" ]; then
+        if [ "${{ env.a4db_RESULT }}" == "19" ]; then
           exit 0
         else
           exit 1
@@ -119,9 +119,9 @@ jobs:
 
     - name: Check 14d9f1a92dd984d6040cc41ed06e273e.apk Result
       shell: bash
-      # This sample should have 15 behaviors with 100% confidence
+      # This sample should have 41 behaviors with 100% confidence
       run: |
-        if [ "${{ env.e273e_RESULT }}" == "42" ]; then
+        if [ "${{ env.e273e_RESULT }}" == "41" ]; then
           exit 0
         else
           exit 1

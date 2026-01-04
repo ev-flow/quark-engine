@@ -120,7 +120,7 @@ class BytecodeOps(ValueNode):
             f"BytecodeOps({self.strFormat!r}, {self.operands!r}, {self.data!r})"
         )
 
-    def _getChildren(self) -> tuple["ValueNode" | Any, ...]:
+    def _getChildren(self) -> tuple[ValueNode, ...]:
         return self.operands
 
     def _assembleResolvedString(self, operandStrs: tuple[str, ...], _) -> str:
