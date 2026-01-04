@@ -167,7 +167,7 @@ class PyEval:
         
         if look_up and regIdxList and (firstReg := regIdxList[0]):
             try:
-                instruction[-1] = self._lookup_implement(
+                targetMethod = self._lookup_implement(
                     self.table_obj.getLatestRegValue(firstReg).current_type,
                     instruction[-1],
                     skip_self=skip_self,
