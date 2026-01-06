@@ -362,7 +362,7 @@ class TestBehavior:
             QUARK_ANALYSIS_RESULT_FOR_RULE_193.behaviorOccurList
         )
         behavior = behaviorOccurList[0]
-        method = behavior.getMethodsInArgs()[0].fullName
+        method = behavior.getMethodsInArgs()[1].fullName
 
         assert method == "Landroid/telephony/SmsManager;" + \
             " getDefault ()Landroid/telephony/SmsManager;"

@@ -15,13 +15,9 @@ from quark.core.interface.baseapkinfo import XMLElement
 from quark.core.quark import Quark
 from quark.core.struct.methodobject import MethodObject
 from quark.core.struct.ruleobject import RuleObject as Rule
+from quark.core.struct.valuenode import iteratePriorCalls
 from quark.evaluator.pyeval import PyEval
 from quark.utils.regex import URL_REGEX
-from quark.utils.tools import (
-    get_arguments_from_argument_str,
-    get_parenthetic_contents,
-)
-
 
 @functools.lru_cache
 def _getQuark(apk: PathLike) -> Quark:
@@ -76,7 +72,6 @@ class Application:
         :return: True/False
         """
         debuggable = self._getAttribute("debuggable")
-        print(debuggable)
         if debuggable is None:
             return False
 
@@ -226,58 +221,54 @@ class Method:
                 self.innerObj
             )
 
-            register_usage_records = (
-                c_func
-                for table in usageTable
-                for val_obj in table
-                for c_func in val_obj.called_by_func
+            methodCalls = (
+                methodCall
+                for register in usageTable.values()
+                for register_value in register
+                for methodCall in register_value.iterateInvolvedCalls()
             )
 
             methodPattern = PyEval.get_method_pattern(
                 self.targetMethod.innerObj.class_name,
                 self.targetMethod.innerObj.name,
-                self.targetMethod.innerObj.descriptor
+                self.targetMethod.innerObj.descriptor,
             )
 
-            matchedRecords = list(filter(
-                lambda record: methodPattern in record,
-                register_usage_records))
-
-            argumentStr = max(matchedRecords, key=len, default="")[:-1]
-            filterStr = f"{self.targetMethod.innerObj.class_name}->" + \
-                self.targetMethod.innerObj.name + \
-                self.targetMethod.descriptor
-
-            argumentStr = argumentStr.replace(filterStr, "")[1:]
-
-            return get_arguments_from_argument_str(
-                argumentStr, self.targetMethod.innerObj.descriptor
+            matchedCall = next(
+                (
+                    priorCall
+                    for call in methodCalls
+                    for priorCall in iteratePriorCalls(call)
+                    if priorCall.method == methodPattern
+                ),
+                None,
             )
 
-        allResult = self.behavior.hasString(".*", True)
-        argumentStr = max(allResult, key=len)[1:-1]
+            return matchedCall.getArguments() if matchedCall else []
 
-        argumentsOfSecondAPI = get_arguments_from_argument_str(
-            argumentStr, self.descriptor)
+        firstAPI, secondAPI = self.behavior.firstAPI, self.behavior.secondAPI
+        firstAPICall, secondAPICall = next(
+            Quark.findMethodCallPairs(
+                self.quarkResult.quark._evaluate_method(
+                    self.behavior.methodCaller.innerObj
+                ),
+                (
+                    firstAPI.className,
+                    firstAPI.methodName,
+                    firstAPI.descriptor),
+                (
+                    secondAPI.className,
+                    secondAPI.methodName,
+                    secondAPI.descriptor,
+                ),
+            ),
+            (None, None),
+        )
 
-        if self == self.behavior.secondAPI:
-            return argumentsOfSecondAPI
-        else:
-            methodPattern = PyEval.get_method_pattern(
-                self.className, self.methodName, self.descriptor
-            )
-
-            argumentsOfFirstAPI = (
-                get_parenthetic_contents(
-                    argument, argument.find(methodPattern)
-                )
-                for argument in argumentsOfSecondAPI
-                if methodPattern in argument
-            )
-
-            return get_arguments_from_argument_str(
-                next(argumentsOfFirstAPI, ""), self.descriptor
-            )
+        apiCall = (
+            firstAPICall if self == self.behavior.firstAPI else secondAPICall
+        )
+        return apiCall.getArguments() if apiCall else []
 
     def findSuperclassHierarchy(self) -> List[str]:
         """Find all superclasses of this method object.
@@ -359,11 +350,12 @@ class Behavior:
         )
 
         result_generator = (
-            self.quarkResult.quark.check_parameter_on_single_method(
-                usage_table=usageTable,
-                first_method=self.firstAPI.innerObj,
-                second_method=self.secondAPI.innerObj,
-                keyword_item_list=[(pattern,), (pattern,)],
+            self.quarkResult.quark.checkParameterOnSingleMethod(
+                usageTable=usageTable,
+                firstMethod=self.firstAPI.innerObj,
+                secondMethod=self.secondAPI.innerObj,
+                firstMethodKeywords=(pattern,),
+                secondMethodKeywords=(pattern,),
                 regex=isRegex,
             )
         )
@@ -388,48 +380,18 @@ class Behavior:
 
         :return: python list containing parameter values
         """
-        def __getArgumentFromMethodCall(method_call_str: str):
+        usageTable = self.quarkResult.quark._evaluate_method(self.methodCaller.innerObj)
 
-            # Extract the part after the method name
-            # e.g. 'La/String;->init(II)V;('ab)_',3)' extracts 'V;('ab)_',3)'
-            method_start_idx = method_call_str.find("(")
-            method_with_args = method_call_str[method_start_idx + 1:]
-            method_end_idx = method_with_args.find(")")
-            method_with_args = method_with_args[method_end_idx + 1:]
-
-            # Extract and split the arguments
-            # e.g. 'V;('ab)_',3)' extracts 'ab)_' and '3'
-            args_start_idx = method_with_args.find("(")
-            args_with_parentheses = method_with_args[args_start_idx + 1:]
-
-            args_end_idx = args_with_parentheses.rfind(")")
-
-            args_str = args_with_parentheses[:args_end_idx]
-            extracted_arguments = args_str.split(",")
-
-            return extracted_arguments
-
-        allResult = self.hasString(".*", True)
-        argumentStr = max(allResult, key=len)[1:-1]
-
-        arguments = get_arguments_from_argument_str(
-            argumentStr, self.secondAPI.descriptor)
-        new_arguments = []
-
-        for argument in arguments:
-            if not isinstance(argument, str):
-                new_arguments.append(argument)
-                continue
-
-            # Extract the arguments from method call and remove class arguments
-            if ";->" in argument:
-                method_call = argument.split(";->")[-1]
-                new_args = __getArgumentFromMethodCall(method_call)
-                new_arguments.extend(new_args)
-            elif not (argument.startswith("L") and argument.endswith(";")):
-                new_arguments.append(argument)
-
-        return new_arguments
+        firstAPI, secondAPI = self.firstAPI, self.secondAPI
+        _, secondAPI = next(
+            Quark.findMethodCallPairs(
+                usageTable,
+                (firstAPI.className, firstAPI.methodName, firstAPI.descriptor),
+                (secondAPI.className, secondAPI.methodName, secondAPI.descriptor),
+            )
+        )
+        
+        return secondAPI.getArguments()
 
     def isArgFromMethod(self, targetMethod: List[str]) -> bool:
         """Check if there are any argument from the target method.
@@ -438,40 +400,60 @@ class Behavior:
          descriptor of target method
         :return: True/False
         """
-        className, methodName, descriptor = targetMethod
+        usageTable = self.quarkResult.quark._evaluate_method(
+            self.methodCaller.innerObj
+        )
 
-        pattern = PyEval.get_method_pattern(className, methodName, descriptor)
-
-        return bool(self.hasString(pattern))
+        firstAPI, secondAPI = self.firstAPI, self.secondAPI
+        apiPairs = Quark.findMethodCallPairs(
+            usageTable,
+            (firstAPI.className, firstAPI.methodName, firstAPI.descriptor),
+            (secondAPI.className, secondAPI.methodName, secondAPI.descriptor),
+        )
+        
+        methodCallsInArgs = (
+            call
+            for _, secondApiCall in apiPairs
+            for call in iteratePriorCalls(secondApiCall)
+        )
+        
+        targetMethodPattern = PyEval.get_method_pattern(*targetMethod)
+        return any(
+            methodCall.method == targetMethodPattern
+            for methodCall in methodCallsInArgs
+        )
 
     def getMethodsInArgs(self) -> List[str]:
         """Get the methods which the arguments in API2 has passed through.
 
         :return: python list containing method instances
         """
-        METHOD_REGEX = r"L(.*?)\;\("
         methodCalled = []
+        usageTable = self.quarkResult.quark._evaluate_method(self.methodCaller.innerObj)
 
-        allResult = self.hasString(".*", True)
-        argumentStr = max(allResult, key=len)[1:-1]
+        firstAPI, secondAPI = self.firstAPI, self.secondAPI
+        _, secondAPICall = next(
+            Quark.findMethodCallPairs(
+                usageTable,
+                (firstAPI.className, firstAPI.methodName, firstAPI.descriptor),
+                (secondAPI.className, secondAPI.methodName, secondAPI.descriptor),
+            )
+        )
 
-        arguments = get_arguments_from_argument_str(
-            argumentStr, self.secondAPI.descriptor)
+        for methodCall in iteratePriorCalls(secondAPICall):
+            result = methodCall.method
+            className = result.split("->")[0]
+            methodName = re.findall(r"->(.*?)\(", result)[0]
+            descriptor = result.split(methodName)[-1]
 
-        for param in arguments:
-            for result in re.findall(METHOD_REGEX, param):
-                className = "L" + result.split("->")[0]
-                methodName = re.findall(r"->(.*?)\(", result)[0]
-                descriptor = result.split(methodName)[-1] + ";"
+            methodObj_list = self.quarkResult.quark.apkinfo.find_method(
+                class_name=className,
+                method_name=methodName,
+                descriptor=descriptor
+            )
 
-                methodObj_list = self.quarkResult.quark.apkinfo.find_method(
-                    class_name=className,
-                    method_name=methodName,
-                    descriptor=descriptor
-                )
-
-                for methodObj in methodObj_list:
-                    methodCalled.append(Method(methodObj=methodObj))
+            for methodObj in methodObj_list:
+                methodCalled.append(Method(methodObj=methodObj))
 
         return methodCalled
 
@@ -497,13 +479,16 @@ class QuarkResult:
             Behavior(
                 quarkResultInstance=self,
                 methodCaller=self._wrapMethodObject(
-                    call_graph_analysis["parent"]
+                    methodObj=call_graph_analysis["parent"],
+                    quark=self.quark
                 ),
                 firstAPI=self._wrapMethodObject(
-                    call_graph_analysis["first_call"]
+                    call_graph_analysis["first_call"],
+                    quark=self.quark
                 ),
                 secondAPI=self._wrapMethodObject(
-                    call_graph_analysis["second_call"]
+                    call_graph_analysis["second_call"],
+                    quark=self.quark
                 ),
             )
             for call_graph_analysis in self.innerObj.call_graph_analysis_list
@@ -528,13 +513,7 @@ class QuarkResult:
         return [self._wrapMethodObject(caller) for caller in list(caller_set)]
 
     def _wrapMethodObject(self, methodObj: MethodObject, quark: Quark = None,  targetMethod: Method = None) -> Method:
-        if methodObj:
-            if targetMethod:
-                return Method(self, methodObj=methodObj, quark=quark, targetMethod=targetMethod)
-            else:
-                return Method(self, methodObj)
-        else:
-            return None
+        return Method(self, methodObj=methodObj, quark=quark, targetMethod=targetMethod)
 
     def getAllStrings(self) -> List[str]:
         """

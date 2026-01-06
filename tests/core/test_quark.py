@@ -8,6 +8,9 @@ import requests
 
 from quark.core.quark import Quark
 from quark.core.struct.ruleobject import RuleObject
+from quark.core.struct.registerobject import RegisterObject
+from quark.core.struct.valuenode import MethodCall, Primitive
+from quark.evaluator.pyeval import PyEval
 
 APK_SOURCE = (
     "https://github.com/quark-engine/apk-samples"
@@ -32,7 +35,7 @@ LABEL_DECS_FILENAME = "label_desc.csv"
 
 
 @pytest.fixture(scope="function")
-def simple_quark_obj():
+def simple_quark_obj() -> Quark:
     r = requests.get(APK_SOURCE, allow_redirects=True)
     open(APK_FILENAME, "wb").write(r.content)
 
@@ -386,75 +389,61 @@ class TestQuark:
 
         assert result is False
 
-    def test_check_parameter_values_with_no_keyword_rule(
+    def test_getMatchedKeywords_with_no_keyword_rule(
         self, simple_quark_obj, rule_without_keyword
     ):
         rule_object = RuleObject(rule_without_keyword)
 
-        with patch("quark.core.quark.Quark.check_parameter_values") as mock:
+        with patch("quark.core.quark.Quark.getMatchedKeywords") as mock:
             simple_quark_obj.run(rule_object)
             mock.assert_not_called()
 
-    def test_check_parameter_values_with_one_keyword_rule(
+    def test_getMatchedKeywords_with_one_keyword_rule(
         self, simple_quark_obj_2, rule_with_one_keyword
     ):
         rule_object = RuleObject(rule_with_one_keyword)
 
-        with patch("quark.core.quark.Quark.check_parameter_values") as mock:
+        with patch("quark.core.quark.Quark.getMatchedKeywords") as mock:
             simple_quark_obj_2.run(rule_object)
             mock.assert_called()
 
-    def test_check_parameter_values_without_matched_str(self, simple_quark_obj):
-        source_str = (
-            "Landroid/content/ContentResolver;->query(Landroid/net/Uri;"
-            " [Ljava/lang/String; Ljava/lang/String; [Ljava/lang/String;"
-            " Ljava/lang/String;)Landroid/database/Cursor;"
-            "(Landroid/content/Context;"
-            "->getContentResolver()Landroid/content/ContentResolver;"
-            "(Lahmyth/mine/king/ahmyth/MainService;->getContextOfApplication()"
-            "Landroid/content/Context;()),Landroid/net/Uri;"
-            "->parse(Ljava/lang/String;)"
-            "Landroid/net/Uri;(file://usr/bin/su),v0,v0,v0,v0)"
-        )
-        pattern_list = (
+    def test_getMatchedKeywords_without_matched_str(self, simple_quark_obj: Quark):
+        method_call = MethodCall(
+            "Landroid/content/ContentResolver;->query"
+            "(Landroid/net/Uri;)Landroid/database/Cursor;",
             (
-                "Landroid/content/ContentResolver;->query(Landroid/net/Uri;"
-                " [Ljava/lang/String; Ljava/lang/String; [Ljava/lang/String;"
-                " Ljava/lang/String;)Landroid/database/Cursor;"
-            ),
-        )
-        keyword_item_list = [("content://call_log/calls",)]
-
-        result = simple_quark_obj.check_parameter_values(
-            source_str, pattern_list, keyword_item_list
+                MethodCall(
+                    "Landroid/net/Uri;->parse(Ljava/lang/String;)",
+                    (Primitive("URL_FOR_TEST", "Ljava/lang/String;"),)
+                ),
+                Primitive(1, "I")
+            )
         )
 
-        assert bool(result) is False
-
-    def test_check_parameter_values_with_matched_str(self, simple_quark_obj):
-        source_str = (
-            "Landroid/database/Cursor;->getColumnIndex"
-            "(Ljava/lang/String;)I(Landroid/content/ContentResolver;"
-            "->query(Landroid/net/Uri; [Ljava/lang/String; Ljava/lang/String;"
-            " [Ljava/lang/String; Ljava/lang/String;)Landroid/database/Cursor;"
-            "(Landroid/content/Context;->getContentResolver()"
-            "Landroid/content/ContentResolver;(Lahmyth/mine/king/ahmyth"
-            "/MainService;->getContextOfApplication()Landroid/content/"
-            "Context;()),Landroid/net/Uri;->parse(Ljava/lang/String;)"
-            "Landroid/net/Uri;(content://call_log/calls),v0,v0,v0,v0),number)"
-        )
-        pattern_list = (
-            "Landroid/content/ContentResolver;->query(Landroid/net/Uri;"
-            " [Ljava/lang/String; Ljava/lang/String; [Ljava/lang/String;"
-            " Ljava/lang/String;)Landroid/database/Cursor;",
-        )
-        keyword_item_list = [("content://call_log/calls",)]
-
-        result = simple_quark_obj.check_parameter_values(
-            source_str, pattern_list, keyword_item_list
+        result = simple_quark_obj.getMatchedKeywords(
+            method_call, ("KW_NOT_MATCHING",), False
         )
 
-        assert bool(result) is True
+        assert result == []
+
+    def test_getMatchedKeywords_with_matched_str(self, simple_quark_obj):
+        method_call = MethodCall(
+            "Landroid/content/ContentResolver;->query"
+            "(Landroid/net/Uri;)Landroid/database/Cursor;",
+            (
+                MethodCall(
+                    "Landroid/net/Uri;->parse(Ljava/lang/String;)",
+                    (Primitive("content://call_log/calls", "Ljava/lang/String;"),)
+                ),
+                Primitive(1, "I")
+            )
+        )
+
+        result = simple_quark_obj.getMatchedKeywords(
+            method_call, ("content://call_log/calls",), False
+        )
+
+        assert result == ["content://call_log/calls"]
 
     def test_get_json_report(self, quark_obj):
         json_report = quark_obj.get_json_report()
@@ -543,3 +532,83 @@ class TestQuark:
 
         assert (quark_obj.quark_analysis
                 .label_report_table.rows[0]) == correctTableRow
+
+    @staticmethod
+    def _registerWithCall(call: MethodCall) -> RegisterObject:
+        register = RegisterObject(value=Primitive("0", "I"))
+        register.called_by_func = call
+        return register
+
+    def testReturnsSinglePairWhenFirstCallFeedsSecond(self):
+        firstMethodInfo = ("Lfoo;", "first", "()V")
+        secondMethodInfo = ("Lfoo;", "second", "()V")
+
+        firstCall = MethodCall(
+            method=PyEval.get_method_pattern(*firstMethodInfo),
+            argumentNodes=(Primitive("input", "Ljava/lang/String;"),),
+        )
+
+        secondCall = MethodCall(
+            method=PyEval.get_method_pattern(*secondMethodInfo),
+            argumentNodes=(firstCall,),
+        )
+
+        usageTable = {0: [self._registerWithCall(secondCall)]}
+
+        result = list(
+            Quark.findMethodCallPairs(
+                usageTable, firstMethodInfo, secondMethodInfo
+            )
+        )
+
+        assert result == [(firstCall, secondCall)]
+
+    def testReturnsMultiplePairsWhenSecondUsesMultipleFirstCalls(self):
+        firstMethodInfo = ("Lfoo;", "first", "()V")
+        secondMethodInfo = ("Lfoo;", "second", "()V")
+
+        firstCallOne = MethodCall(
+            method=PyEval.get_method_pattern(*firstMethodInfo),
+            argumentNodes=(Primitive("alpha", "Ljava/lang/String;"),),
+        )
+        firstCallTwo = MethodCall(
+            method=PyEval.get_method_pattern(*firstMethodInfo),
+            argumentNodes=(Primitive("beta", "Ljava/lang/String;"),),
+        )
+
+        secondCall = MethodCall(
+            method=PyEval.get_method_pattern(*secondMethodInfo),
+            argumentNodes=(firstCallOne, firstCallTwo),
+        )
+
+        usageTable = {0: [self._registerWithCall(secondCall)]}
+
+        result = list(
+            Quark.findMethodCallPairs(
+                usageTable, firstMethodInfo, secondMethodInfo
+            )
+        )
+
+        assert result == [
+            (firstCallOne, secondCall),
+            (firstCallTwo, secondCall),
+        ]
+
+    def testReturnsEmptyWhenSecondCallLacksMatchingPriorCall(self):
+        firstMethodInfo = ("Lfoo;", "first", "()V")
+        secondMethodInfo = ("Lfoo;", "second", "()V")
+
+        second_call = MethodCall(
+            method=PyEval.get_method_pattern(*secondMethodInfo),
+            argumentNodes=(Primitive("gamma", "Ljava/lang/String;"),),
+        )
+
+        usageTable = {0: [self._registerWithCall(second_call)]}
+
+        result = list(
+            Quark.findMethodCallPairs(
+                usageTable, firstMethodInfo, secondMethodInfo
+            )
+        )
+
+        assert result == []
