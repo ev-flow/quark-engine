@@ -151,6 +151,7 @@ def iterativeResolve(node: ValueNode, evaluateArgs: bool) -> str:
     :return: a string representation of the value
     """
     stack = [(node, [])]
+    visiting = {id(node)}
 
     while stack:
         current, childStrs = stack[-1]
@@ -166,7 +167,12 @@ def iterativeResolve(node: ValueNode, evaluateArgs: bool) -> str:
                 childStrs.append(cachedValue.value)
                 continue
 
+            if id(child) in visiting:
+                childStrs.append("<recursion>")
+                continue
+
             # Update current node to continue with next child later
+            visiting.add(id(child))
             stack.append((child, []))
             continue
 
@@ -176,6 +182,7 @@ def iterativeResolve(node: ValueNode, evaluateArgs: bool) -> str:
         __resolvedCache[id(current)] = StringWrapper(result)
 
         # Current node is fully processed, pop from stack
+        visiting.remove(id(current))
         stack.pop()
 
         if not stack:

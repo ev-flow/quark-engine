@@ -8,7 +8,7 @@ from quark.core.struct.valuenode import (
     BytecodeOps,
     iteratePriorPrimitives,
     iteratePriorCalls,
-    evaluateArgument
+    evaluateArgument,
 )
 
 
@@ -98,6 +98,29 @@ class TestIterators:
         outer = MethodCall("outer", (shared_call, shared_call))
         calls = list(iteratePriorCalls(outer))
         assert calls.count(shared_call) == 1
+
+    def test_iterativeResolve_direct_recursion(self):
+        mc = MethodCall("recursive", ())
+        # Manually create a cycle
+        mc.argumentNodes = (mc,)
+        assert mc.resolve() == "recursive(<recursion>)"
+
+    def test_iterativeResolve_indirect_recursion(self):
+        inner = MethodCall("inner", ())
+        outer = MethodCall("outer", (inner,))
+        # Create cycle: outer -> inner -> outer
+        inner.argumentNodes = (outer,)
+        assert outer.resolve() == "outer(inner(<recursion>))"
+
+    def test_iterativeResolve_diamond_dependency(self):
+        # Ensure shared nodes in a DAG are not treated as recursion
+        # root -> b1 -> leaf
+        # root -> b2 -> leaf
+        leaf = Primitive("leaf", None)
+        branch1 = MethodCall("b1", (leaf,))
+        branch2 = MethodCall("b2", (leaf,))
+        root = MethodCall("root", (branch1, branch2))
+        assert root.resolve() == "root(b1(leaf),b2(leaf))"
 
 
 @pytest.mark.parametrize(
