@@ -1,15 +1,15 @@
 quark-engine (26.1.1-0kali1) kali-dev; urgency=medium
 
+  * Rule Enhancement
+
+    - Add 5 new rules for the PhantomCard malware family. (#843)
+
   * Document Enhancement
 
     - Add an analysis report for the PhantomCard malware family. (#843)
     - Optimize the Quark Script documents for CWE-749 and CWE-927. (#842 and #844)
 
-  * Bug Fix
-
-    - Update the expected result for Quark analysis in the smoke test. (#846)
-
- --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 05 Jan 2026 10:28:34 +0800
+ --  Shaun Dang <pulorsok@gmail.com>  Mon, 05 Jan 2026 10:28:34 +0800
 
 quark-engine (25.12.1-0kali1) kali-dev; urgency=medium
 
