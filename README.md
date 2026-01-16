@@ -32,7 +32,6 @@
     <img src="https://i.imgur.com/8GwkWei.png"/>
 </p>
 
-# Android Malware Ontology — Unveil the Behavior of Android Malware
 ## Malware Family Analysis Report Showcase
 
 <table>
