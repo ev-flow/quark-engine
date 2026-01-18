@@ -12,6 +12,7 @@ import numpy as np
 import csv
 
 from quark.core.analysis import QuarkAnalysis
+from quark.core.dextraceapkinfo import DexTraceImp
 from quark.core.shurikenapkinfo import ShurikenImp
 from quark.core.apkinfo import AndroguardImp
 from quark.core.rzapkinfo import RizinImp
@@ -49,7 +50,9 @@ class Quark:
         :param apk: the filename of the apk.
         """
         core_library = core_library.lower()
-        if core_library == "shuriken":
+        if core_library == "dextrace":
+            self.apkinfo = DexTraceImp(apk)
+        elif core_library == "shuriken":
             self.apkinfo = ShurikenImp(apk)
         elif core_library == "rizin":
             self.apkinfo = RizinImp(apk)
