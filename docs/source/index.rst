@@ -18,28 +18,6 @@ This guide will explain how to set up Quark, use it, and customize it.
    :maxdepth: 2
    :caption: Contents:
 
+   malware_report
    install_index
-   quark_script
-   quark_script_visualization
-   quark_mit_program
-   quark_agent
-   quark_reports
-   quark_rules
-   addRules
-   rule_generation
    integration
-   dev_index
-   contribution
-   organization
-   doc
-   quark_method_reference
-   quark_inside_index
-   modules
-   faq
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
