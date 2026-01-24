@@ -28,11 +28,10 @@ class AndroguardImp(BaseApkinfo):
 
         if self.ret_type == "APK":
             # return the APK, list of DalvikVMFormat, and Analysis objects
-            self.apk, self.dalvikvmformat, self.analysis = AnalyzeAPK(apk_filepath)
+            self.apk, self.dalvikvmformat, self.analysis = AnalyzeAPK(self.data, raw=True)
         elif self.ret_type == "DEX":
             # return the sha256hash, DalvikVMFormat, and Analysis objects
-            _, _, self.analysis = AnalyzeDex(apk_filepath)
-            self._manifest = None
+            _, _, self.analysis = get_default_session().addDEX(self.apk_filename, self.data)
         else:
             raise ValueError("Unsupported File type.")
 
