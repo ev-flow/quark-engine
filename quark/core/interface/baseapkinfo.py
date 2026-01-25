@@ -58,8 +58,10 @@ class BaseApkinfo:
         return f"<Apkinfo-APK:{self.apk_filename}, Imp:{self.core_library}>"
 
     def __del__(self):
-        self.data.close()
-        self.file.close()
+        if hasattr(self, "data"):
+            self.data.close()
+        if hasattr(self, "file"):
+            self.file.close()
 
     def __extractAndroidManifest(
         self, data: SeekableMMap, tmp_dir: str | PathLike | None
