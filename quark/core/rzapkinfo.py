@@ -54,9 +54,9 @@ class RizinImp(BaseApkinfo):
 
         elif self.ret_type == "APK":
             self._tmp_dir = tempfile.mkdtemp() if tmp_dir is None else tmp_dir
-            
+
             if self.isPatched:
-                # The APK has been patched to mitigate anti-analysis 
+                # The APK has been patched to mitigate anti-analysis
                 # techniques. Therefore, Rizin must parse the patched data
                 # instead of the original APK.
                 self.apk_filepath = os.path.join(self._tmp_dir, "patched.apk")

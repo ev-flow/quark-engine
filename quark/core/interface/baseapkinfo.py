@@ -3,7 +3,6 @@
 # See the file 'LICENSE' for copying permission.
 
 import hashlib
-import io
 import mmap
 import os.path
 from abc import abstractmethod

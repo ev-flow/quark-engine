@@ -55,13 +55,13 @@ class R2Imp(BaseApkinfo):
             self._tmp_dir = tempfile.mkdtemp() if tmp_dir is None else tmp_dir
 
             if self.isPatched:
-                # The APK has been patched to mitigate anti-analysis 
+                # The APK has been patched to mitigate anti-analysis
                 # techniques. Therefore, Radare2 must parse the patched data
                 # instead of the original APK.
                 self.apk_filepath = os.path.join(self._tmp_dir, "patched.apk")
                 with open(self.apk_filepath, "wb") as patchedApk:
                     patchedApk.write(self.data)
-                    
+
                 self.data.close()
                 self.file.close()
 
