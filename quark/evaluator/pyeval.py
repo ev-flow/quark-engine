@@ -793,11 +793,10 @@ class PyEval:
 
         for source in source_list:
             if not self.table_obj.getRegValues(source):
-
-                new_value = BytecodeOps(str_format, (instruction), data)
-
+                # A source register used by the instruction is not initialized,
+                # create a RegisterObject for it.
                 new_register = RegisterObject(
-                    value=new_value,
+                    value=Primitive("", value_type),
                     value_type=value_type,
                 )
                 self.table_obj.insert(source, new_register)
