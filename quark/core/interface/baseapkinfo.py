@@ -16,7 +16,9 @@ from quark.core.apkpatcher import ApkPatcher, SeekableMMap
 from quark.core.struct.bytecodeobject import BytecodeObject
 from quark.core.struct.methodobject import MethodObject
 from quark.core.axmlreader.python import PythonImp as AxmlReader
+from quark.utils.pprint import print_warning
 
+ANDROID_MANIFEST_FILE_NAME = "AndroidManifest.xml"
 
 class BaseApkinfo:
 
@@ -68,8 +70,12 @@ class BaseApkinfo:
         tmp_dir = tempfile.mkdtemp() if tmp_dir is None else tmp_dir
 
         with zipfile.ZipFile(data, "r") as apk:  # type: ignore
-            apk.extract("AndroidManifest.xml", path=tmp_dir)
-            return os.path.join(tmp_dir, "AndroidManifest.xml")
+            if ANDROID_MANIFEST_FILE_NAME not in apk.namelist():
+                print_warning("APK does not contain AndroidManifest.xml.")
+                return None
+                
+            apk.extract(ANDROID_MANIFEST_FILE_NAME, path=tmp_dir)
+            return os.path.join(tmp_dir, ANDROID_MANIFEST_FILE_NAME)
 
     @property
     def filename(self) -> str:
@@ -109,7 +115,7 @@ class BaseApkinfo:
 
         :return: a list of all permissions
         """
-        if self.ret_type != "APK":
+        if self.ret_type != "APK" or self._manifest is None:
             return []
 
         with AxmlReader(self._manifest) as axml:
@@ -132,7 +138,7 @@ class BaseApkinfo:
 
         :return: an application element
         """
-        if self.ret_type != "APK":
+        if self.ret_type != "APK" or self._manifest is None:
             return None
 
         with AxmlReader(self._manifest) as axml:
@@ -147,7 +153,7 @@ class BaseApkinfo:
 
         :return: a list of all activities
         """
-        if self.ret_type != "APK":
+        if self.ret_type != "APK" or self._manifest is None:
             return None
 
         with AxmlReader(self._manifest) as axml:
@@ -162,7 +168,7 @@ class BaseApkinfo:
 
         :return: a list of all receivers
         """
-        if self.ret_type != "APK":
+        if self.ret_type != "APK" or self._manifest is None:
             return None
 
         with AxmlReader(self._manifest) as axml:
@@ -176,7 +182,7 @@ class BaseApkinfo:
 
         :return: python list containing provider elements
         """
-        if self.ret_type != "APK":
+        if self.ret_type != "APK" or self._manifest is None:
             return None
 
         with AxmlReader(self._manifest) as axml:
