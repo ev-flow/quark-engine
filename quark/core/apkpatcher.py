@@ -5,6 +5,14 @@ import mmap
 import struct
 import zlib
 from typing import Iterator, Tuple
+import logging
+from quark import config
+from quark.utils.logger import defaultHandler
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+log.addHandler(defaultHandler)
+log.disabled = not config.DEBUG
 
 EOCD_SIGNATURE = b"PK\x05\x06"
 CDH_SIGNATURE = b"PK\x01\x02"
@@ -39,13 +47,13 @@ class ApkPatcher:
         """
         Finds and patches known anti-analysis techniques in an APK.
 
-        This function perform patches in place and suppresses any errors to 
+        This function perform patches in place and suppresses any errors to
         prevent crashes that would interrupt the analysis.
 
         :param raw_data: A memory-mapped file object of the APK.
         :return: True if any part of the APK was patched; False otherwise.
         """
-        with suppress(BaseException):
+        try:
             eocd_offset = ApkPatcher._find_eocd(raw_data)
             cdh_count, cdh_start_offset = ApkPatcher._parse_eocd(
                 raw_data, eocd_offset
@@ -57,7 +65,10 @@ class ApkPatcher:
                 raw_data, cdh_count, cdh_start_offset
             )
             return compression_patched or manifest_patched
-        return False
+
+        except BaseException as e:
+            log.exception(e)
+            return False
 
     @staticmethod
     def _find_eocd(raw_data: mmap.mmap) -> int:
@@ -94,7 +105,7 @@ class ApkPatcher:
     @staticmethod
     def _iter_cdh(
         raw_data: mmap.mmap, cdh_count: int, cdh_start_offset: int
-    ) -> Iterator[int]:
+    ) -> Iterator[tuple[int, bool]]:
         """
         Iterates over the Central Directory Headers (CDH) and yields offsets.
 
@@ -105,11 +116,11 @@ class ApkPatcher:
         """
         current_offset = cdh_start_offset
         for _ in range(cdh_count):
-            if not raw_data[current_offset:].startswith(CDH_SIGNATURE):
-                # No a valid CDH signature, skip it
-                continue
-
-            yield current_offset
+            actual_signature = raw_data[
+                current_offset : current_offset + len(CDH_SIGNATURE)
+            ]
+            is_valid_signature = actual_signature == CDH_SIGNATURE
+            yield current_offset, is_valid_signature
 
             filename_len_offset = current_offset + 28
             extra_field_len_offset = current_offset + 30
@@ -137,7 +148,7 @@ class ApkPatcher:
         This function checks the compression method in all Central Directory
         Headers (CDHs). If an invalid compression method is found, it patches
         the method to 0 in both the CDH and the corresponding Local File Header
-        (LFH). It also updates the compressed size to match the uncompressed 
+        (LFH). It also updates the compressed size to match the uncompressed
         size.
 
         :param raw_data: A memory-mapped file object of the APK.
@@ -147,9 +158,15 @@ class ApkPatcher:
         """
         isPatched = False
 
-        for current_offset in ApkPatcher._iter_cdh(
+        for current_offset, is_valid_signature in ApkPatcher._iter_cdh(
             raw_data, cdh_count, cdh_start_offset
         ):
+            if not is_valid_signature:
+                log.warning(
+                    f"Found invalid CDH signature at offset {current_offset}."
+                    " Try parsing it anyway."
+                )
+
             compression_method_offset = current_offset + 10
             lfh_offset_offset = current_offset + 42
 
@@ -176,9 +193,14 @@ class ApkPatcher:
                 "<I", raw_data, compressed_size_offset, uncompressed_size
             )
 
-            if not raw_data[lfh_offset:].startswith(LFH_SIGNATURE):
-                # No a valid LFH signature, skip it
-                continue
+            actual_lfh_signature = raw_data[
+                lfh_offset : lfh_offset + len(LFH_SIGNATURE)
+            ]
+            if not actual_lfh_signature == LFH_SIGNATURE:
+                log.warning(
+                    f"Found invalid LFH signature at offset {lfh_offset}."
+                    " Try patching it anyway."
+                )
 
             lfh_compression_method_offset = lfh_offset + 8
             struct.pack_into("<H", raw_data, lfh_compression_method_offset, 0)
@@ -207,9 +229,21 @@ class ApkPatcher:
         :return: True if the manifest signature was patched, False otherwise.
         """
         is_patched = False
-        for current_offset in ApkPatcher._iter_cdh(
+
+        expected_file_name = "AndroidManifest.xml".encode(
+            "utf-8", errors="ignore"
+        )
+        expected_file_name_len = len(expected_file_name)
+
+        for current_offset, is_valid_signature in ApkPatcher._iter_cdh(
             raw_data, cdh_count, cdh_start_offset
         ):
+            if not is_valid_signature:
+                log.warning(
+                    f"Found invalid CDH signature at offset {current_offset}."
+                    " Try parsing it anyway."
+                )
+                
             # Check filename
             filename_offset = current_offset + 46
             actual_file_name = raw_data[
@@ -234,9 +268,24 @@ class ApkPatcher:
                 "<I", raw_data, lfh_offset_offset
             )
 
-            if not raw_data[lfh_offset:].startswith(LFH_SIGNATURE):
-                # No a valid LFH signature, skip it
-                continue
+            actual_lfh_signature = raw_data[
+                lfh_offset : lfh_offset + len(LFH_SIGNATURE)
+            ]
+            if not actual_lfh_signature == LFH_SIGNATURE:
+                log.warning(
+                    "Found invalid LFH signature at"
+                    f" offset {lfh_offset}. Try patching it anyway."
+                )
+
+            uncompressed_size_offset = current_offset + 24
+            (uncompressed_size,) = struct.unpack_from(
+                "<I", raw_data, uncompressed_size_offset
+            )
+            if uncompressed_size == 0:
+                log.info(
+                    "Found uncompressed size of 0 at"
+                    f" offset {current_offset}. Skip checking the signature."
+                )
 
             # Calculate data offset from LFH
             lfh_filename_len_offset = lfh_offset + 26
@@ -252,29 +301,31 @@ class ApkPatcher:
             )
 
             # Check and patch the AXML signature (first byte of data)
-            if raw_data[data_offset] != 0x03:
-                raw_data[data_offset] = 0x03
-                is_patched = True
+            if raw_data[data_offset] == 0x03:
+                # Manifest starts with 0x03. no need to continue iterating
+                break
 
-                # Get file size to calculate new CRC
-                uncompressed_size_offset = current_offset + 24
-                (uncompressed_size,) = struct.unpack_from(
-                    "<I", raw_data, uncompressed_size_offset
-                )
+            raw_data[data_offset] = 0x03
+            is_patched = True
 
-                # Calculate new CRC on the patched data
-                patched_content = raw_data[
-                    data_offset : data_offset + uncompressed_size
+            # Calculate new CRC on the patched data in chunks.
+            new_crc = 0
+            chunk_size = 65536  # 64KB
+            data_view = memoryview(raw_data)
+            for i in range(0, uncompressed_size, chunk_size):
+                chunk_boundary = min(i + chunk_size, uncompressed_size)
+                chunk = data_view[
+                    data_offset + i : data_offset + chunk_boundary
                 ]
-                new_crc = zlib.crc32(patched_content)
+                new_crc = zlib.crc32(chunk, new_crc)
 
-                # Update CRC in CDH
-                cdh_crc_offset = current_offset + 16
-                struct.pack_into("<I", raw_data, cdh_crc_offset, new_crc)
+            # Update CRC in CDH
+            cdh_crc_offset = current_offset + 16
+            struct.pack_into("<I", raw_data, cdh_crc_offset, new_crc)
 
-                # Update CRC in LFH
-                lfh_crc_offset = lfh_offset + 14
-                struct.pack_into("<I", raw_data, lfh_crc_offset, new_crc)
+            # Update CRC in LFH
+            lfh_crc_offset = lfh_offset + 14
+            struct.pack_into("<I", raw_data, lfh_crc_offset, new_crc)
 
             # Manifest found and processed, no need to continue iterating
             break
