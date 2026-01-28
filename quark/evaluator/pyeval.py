@@ -7,24 +7,16 @@
 # http://pallergabor.uw.hu/androidblog/dalvik_opcodes.html
 
 import logging
-from datetime import datetime
-
 from quark import config
 from quark.core.struct.registerobject import RegisterObject
 from quark.core.struct.tableobject import TableObject
+from quark.utils.logger import defaultHandler
 
 MAX_REG_COUNT = 40
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-if config.DEBUG:
-    TIMESTAMPS = datetime.now().strftime("%Y-%m-%d")
-    LOG_FILENAME = f"{TIMESTAMPS}.quark.log"
-    handler = logging.FileHandler(LOG_FILENAME, mode="w")
-    format_str = "%(asctime)s %(levelname)s [%(lineno)d]: %(message)s"
-    handler.setFormatter(logging.Formatter(format_str))
-    log.addHandler(handler)
-else:
-    log.disabled = True
+log.addHandler(defaultHandler)
+log.disabled = not config.DEBUG
 
 
 def logger(func):
