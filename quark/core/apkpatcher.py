@@ -210,17 +210,13 @@ class ApkPatcher:
         for current_offset in ApkPatcher._iter_cdh(
             raw_data, cdh_count, cdh_start_offset
         ):
-            # Get filename
-            filename_len_offset = current_offset + 28
-            (filename_len,) = struct.unpack_from(
-                "<H", raw_data, filename_len_offset
-            )
+            # Check filename
             filename_offset = current_offset + 46
-            filename = raw_data[
-                filename_offset : filename_offset + filename_len
-            ].decode("utf-8", errors="ignore")
+            actual_file_name = raw_data[
+                filename_offset : filename_offset + expected_file_name_len
+            ]
 
-            if filename != "AndroidManifest.xml":
+            if actual_file_name != expected_file_name:
                 continue
 
             # Check compression method (0 = STORED)
