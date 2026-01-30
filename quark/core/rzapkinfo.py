@@ -55,11 +55,16 @@ class RizinImp(BaseApkinfo):
         elif self.ret_type == "APK":
             self._tmp_dir = tempfile.mkdtemp() if tmp_dir is None else tmp_dir
 
-            with zipfile.ZipFile(self.apk_filepath) as apk:
-                apk.extract("AndroidManifest.xml", path=self._tmp_dir)
-
-                self._manifest = os.path.join(
-                    self._tmp_dir, "AndroidManifest.xml")
+            if self.isPatched:
+                # The APK has been patched to mitigate anti-analysis
+                # techniques. Therefore, Rizin must parse the patched data
+                # instead of the original APK.
+                self.apk_filepath = os.path.join(self._tmp_dir, "patched.apk")
+                with open(self.apk_filepath, "wb") as patchedApk:
+                    patchedApk.write(self.data)
+                    
+                self.data.close()
+                self.file.close()
 
         else:
             raise ValueError("Unsupported File type.")
