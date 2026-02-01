@@ -42,8 +42,20 @@ SAMPLES = [
             "https://github.com/quark-engine/apk-samples"
             "/raw/master/vulnerable-samples/Vuldroid.apk"
         ),
-        "fileName": "Vuldroid.apk"
-    }
+        "fileName": "Vuldroid.apk",
+    },
+    {
+        "sourceUrl": (
+            "https://github.com/quark-engine/apk-samples"
+            "/raw/master/malware-samples/"
+            "3d52b5728af55c37d5bd74c3f9b7e9ea6b007a9ec202a648ce3dc7e37ff49b29"
+            ".apk"
+        ),
+        "fileName": (
+            "3d52b5728af55c37d5bd74c3f9b7e9ea6b007a9ec202a648ce3dc7e37ff49b29"
+            ".apk"
+        ),
+    },
 ]
 
 
@@ -82,6 +94,12 @@ def SAMPLE_PATH_Ahmyth(tmp_path_factory: pytest.TempPathFactory) -> str:
 def SAMPLE_PATH_pivaa(tmp_path_factory: pytest.TempPathFactory) -> str:
     return downloadSample(tmp_path_factory, SAMPLES[3])
 
+
 @pytest.fixture(scope="session")
 def SAMPLE_PATH_Vuldroid(tmp_path_factory: pytest.TempPathFactory) -> str:
     return downloadSample(tmp_path_factory, SAMPLES[4])
+
+
+@pytest.fixture(scope="session")
+def SAMPLE_PATH_3d52b(tmp_path_factory: pytest.TempPathFactory) -> str:
+    return downloadSample(tmp_path_factory, SAMPLES[5])

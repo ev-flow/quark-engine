@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for copying permission.
 
 import functools
+import logging
 import re
 from collections import defaultdict
 from os import PathLike
@@ -10,7 +11,7 @@ from typing import Dict, List, Optional, Set, Union
 
 from androguard.core.analysis.analysis import MethodAnalysis
 from androguard.core.bytecodes.dvm_types import Operand
-from androguard.misc import AnalyzeAPK, AnalyzeDex
+from androguard.misc import AnalyzeAPK, get_default_session
 
 from quark.core.interface.baseapkinfo import BaseApkinfo
 from quark.core.struct.bytecodeobject import BytecodeObject
@@ -25,12 +26,15 @@ class AndroguardImp(BaseApkinfo):
         super().__init__(apk_filepath, "androguard")
 
         if self.ret_type == "APK":
+            # Suppress Androguard warnings about AndroidManifest,
+            # as we don't use Androguard’s AndroidManifest parsing results.
+            logging.getLogger("androguard.axml").disabled = True
+            logging.getLogger("androguard.apk").disabled = True
             # return the APK, list of DalvikVMFormat, and Analysis objects
-            self.apk, self.dalvikvmformat, self.analysis = AnalyzeAPK(apk_filepath)
+            self.apk, self.dalvikvmformat, self.analysis = AnalyzeAPK(self.data, raw=True)
         elif self.ret_type == "DEX":
             # return the sha256hash, DalvikVMFormat, and Analysis objects
-            _, _, self.analysis = AnalyzeDex(apk_filepath)
-            self._manifest = None
+            _, _, self.analysis = get_default_session().addDEX(self.apk_filename, self.data)
         else:
             raise ValueError("Unsupported File type.")
 
