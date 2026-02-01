@@ -164,11 +164,13 @@ class PyEval:
 
         opcode, *regList, targetMethod = instruction
         regIdxList = [int(r[1:]) for r in regList]
-        
-        if look_up and regIdxList and (firstReg := regIdxList[0]):
+
+        if look_up and len(regIdxList) > 0:
             try:
                 targetMethod = self._lookup_implement(
-                    self.table_obj.getLatestRegValue(firstReg).current_type,
+                    self.table_obj.getLatestRegValue(
+                        regIdxList[0]
+                    ).current_type,
                     instruction[-1],
                     skip_self=skip_self,
                 )
