@@ -1,3 +1,20 @@
+quark-engine (26.2.1-0kali1) kali-dev; urgency=medium
+
+  * Dependency Update
+
+    - Update outdated dependencies. (#850 and #856)
+
+  * Document Enhancement
+
+    - Update README to match QuarkEngine's new 2026 direction. (#854)
+    - Reconstruct documentation. (#857)
+
+  * Bug Fix
+
+    - Fix Quark crashes due to invalid values in APK ZIP header and AndroidManifest header. (#859)
+
+ --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 02 Feb 2026 10:50:27 +0800
+
 quark-engine (26.1.1-0kali1) kali-dev; urgency=medium
 
   * Rule Enhancement
