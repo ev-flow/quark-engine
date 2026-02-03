@@ -1,0 +1,273 @@
+name: CI Failure Advisor
+
+on:
+  workflow_run:
+    workflows:
+      - Smoke Test
+      - Upload Python Package
+      - build
+      - Kali Package CI
+      - Generate GitHub Release Issue/PR
+      - Generate GitHub Release Draft
+      - Docker
+      - Docker Image CI
+      - CodeQL
+    types: [completed]
+
+jobs:
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch the IDs of peer runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          callerRunId=${{ github.event.workflow_run.id }}
+          callerRunCommitSha=${{ github.event.workflow_run.head_sha }}
+
+          createTimeOfFailRun=$(gh run view $callerRunId --json createdAt --jq .createdAt)
+          createTimeWindowStart=$(date -d "$createTimeOfFailRun - 2 seconds" -u +"%Y-%m-%dT%H:%M:%SZ")
+          createTimeWindowEnd=$(date -d "$createTimeOfFailRun + 2 seconds" -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          latest50RunInfos=$(gh run list --limit 50 --commit $callerRunCommitSha --json databaseId,createdAt)        
+
+          latestPeerRuns=$(echo $latest50RunInfos \
+            | jq --arg start $createTimeWindowStart --arg end $createTimeWindowEnd \
+            'map(select(.createdAt >= $start and .createdAt <= $end))'
+          )
+
+          echo "Peer runs:"
+          echo $latestPeerRuns | jq
+          echo $latestPeerRuns | jq -r '.[].databaseId' > peer_run_ids.txt
+
+      - name: Check whether the peer runs have completed.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while true; do
+            areAllPeerRunsCompleted=0
+            while read -r runId; do
+              if [[ ! -z "$runId" ]]; then
+                runStatus=$(gh run view $runId --json status --jq .status)
+                echo "$runId: $runStatus" 
+                if [[ "$runStatus" != "completed" ]] ; then
+                  areAllPeerRunsCompleted=0
+                  break
+                fi
+                areAllPeerRunsCompleted=1
+              fi
+            done < peer_run_ids.txt
+          
+            if (( $areAllPeerRunsCompleted )); then
+              echo "All peer runs are completed!"
+              break
+            fi
+          
+            sleep 60
+          
+          done
+
+      - name: Fetch the IDs of failed runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          callerRunId=${{ github.event.workflow_run.id }}
+          callerRunCommitSha=${{ github.event.workflow_run.head_sha }}
+
+          createTimeOfFailRun=$(gh run view $callerRunId --json createdAt --jq .createdAt)
+          createTimeWindowStart=$(date -d "$createTimeOfFailRun - 2 seconds" -u +"%Y-%m-%dT%H:%M:%SZ")
+          createTimeWindowEnd=$(date -d "$createTimeOfFailRun + 2 seconds" -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          latest50FailRunInfos=$(gh run list --limit 50 --status failure --commit $callerRunCommitSha --json databaseId,createdAt,updatedAt)        
+
+          latestFailRuns=$(echo $latest50FailRunInfos \
+            | jq --arg start $createTimeWindowStart --arg end $createTimeWindowEnd \
+            'map(select(.createdAt >= $start and .createdAt <= $end))'
+          )
+
+          echo "Failed runs:"
+          echo $latestFailRuns | jq
+          echo $latestFailRuns | jq -r '.[].databaseId' > fail_run_ids.txt
+
+      - name: Check if this workflow’s caller is the latest failed run among peers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          callerRunId=${{ github.event.workflow_run.id }}
+          updateTimeOfCallerRun=$(gh run view $callerRunId --json updatedAt --jq .updatedAt)
+          updateTimeOfCallerRun=$(date -d $updateTimeOfCallerRun +%s)
+          
+          while read -r runId; do
+            if [[ $runId != $callerRunId ]]; then
+              updateTime=$(gh run view $runId --json updatedAt --jq .updatedAt)
+              updateTime=$(date -d $updateTime +%s)
+        
+              if (( $updateTime > $updateTimeOfCallerRun )); then
+                echo "The caller run is not the last one that failed. Abort."
+                gh run cancel ${{ github.run_id }}
+                sleep infinity
+              fi
+            fi
+          done < fail_run_ids.txt
+
+      - name: Fetch caller run info
+        id: fetch_info
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          callerRunId=${{ github.event.workflow_run.id }}
+          startTimeOfLastRun=$(gh run view $callerRunId --json startedAt --jq .startedAt)
+          echo "triggerTime=$startTimeOfLastRun" >> $GITHUB_OUTPUT
+          
+          triggerEvent="${{ github.event.workflow_run.event }}"
+          echo "triggerEvent=$triggerEvent" >> $GITHUB_OUTPUT
+          echo $triggerEvent
+
+      - name: Fetch failed run logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          errorLogs=""
+          while read -r runId; do
+            if [[ ! -z "$runId" ]]; then
+              echo "Fetching logs for run ID: $runId"
+              failRunWorkflowName=$(gh run view $runId --json name --jq .name)
+              failRunConfigFile=$(gh api repos/${{ github.repository }}/actions/runs/$runId --jq '.path')
+              logContent=$(gh run view $runId --log-failed)
+          
+              errorLogEntry="""
+              ### Run ID: $runId\n
+                + Workflow Name: $failRunWorkflowName\n
+                + Workflow Config File: $failRunConfigFile\n
+                + Error Log:\n 
+                \`\`\`\n
+                  $logContent\n
+                \`\`\`
+              """
+
+              if [[ ! -z "$errorLogEntry" ]]; then
+                errorLogs="${errorLogs}$errorLogEntry\n\n"
+              fi
+            fi
+          done < fail_run_ids.txt
+          
+          echo -e "$errorLogs" > error_logs.md
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install Codex CLI
+        run: |
+          sudo npm install -g @openai/codex@0.20.0
+
+      - name: Analyze the failures
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
+          CODEX_QUIET_MODE: 1
+        run: |      
+          ciAdviseReportTemplate=".github/workflows/ci-failure-analysis-report-template.md"
+          ciAdviseExampleFile=".github/workflows/ci-failure-analysis-report-example.md"
+          reportFile="analysis.md"
+          triggerTime=$(TZ=Asia/Taipei date -d ${{ steps.fetch_info.outputs.triggerTime }})
+          codex exec -m gpt-5 --full-auto  \
+            "
+              You are an experienced DevOps engineer, well-versed in GitHub Actions workflow and Python development. 
+              I’ve encountered some GitHub Actions failures in a Python project and need your advice on how to resolve them.
+
+              Here is the information:
+                1. The source code of the Python project is in the ./ directory.
+                2. The error_logs.md file contains the details of failed workflow runs.
+                3. The timestamp of the workflow runs is $triggerTime.
+              
+              Please perform the following tasks:
+                1. Analyze the root cause of the failure by checking:
+                    + Is it a temporary network error that could be resolved by re-running the workflow?
+                    + Is it caused by incorrect workflow settings?
+                    + Is it related to recent commit changes in the source code?
+                    + Is it due to bugs in the source code?
+                    + Is it caused by dependency issues?
+                    + Does the error log suggest any other possible causes?
+                2. Identify the most likely solution to the problem.
+                    + Include credible references, such as StackOverflow discussions or official documentation, to support your solution.
+          
+              Then, use the template $ciAdviseReportTemplate with the information below
+              to write your response to the file $reportFile:
+                1. TIMESTAMP: The timestamp of the workflow runs
+                2. N: The total number of failed workflows
+                3. NAME_OF_#N__FAILURE_WORKFLOW: The name of the Nth workflow
+                4. ROOT_CAUSE_OF_#N__FAILURE_WORKFLOW: The root cause that Nth workflow failed
+                5. SUGGESTED_SOLUTIONS_OF_#N__FAILURE_WORKFLOW: The suggested solution to the Nth workflow
+                  (When you are suggesting code to resolve the problems: 
+                    a. Use the unified format of GNU diffutils (see: https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html),
+                       but exclude the timestamp.
+                    b. Use a diff code block of GitHub Markdown.
+                  )
+          
+              Take $ciAdviseExampleFile for example.
+          
+              Lastly, follow the rules below:
+                1. Please keep your response precise, easy to understand, and straight to the point.
+                2. Please check the grammar of your response in $reportFile is correct.
+                3. Do not output something like'【F:.github/workflows/smoke_test.yml†L114-L122】'. It's ugly.
+                4. Please ensure your response in $reportFile follows GitHub Markdown format.
+            "
+
+      - name: Post the report as a comment for pull request
+        if: steps.fetch_info.outputs.triggerEvent == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          callerRunId=${{ github.event.workflow_run.id }}
+          bodyFile="analysis.md"
+          prNum=$(gh api repos/${{ github.repository }}/actions/runs/$callerRunId --jq '.pull_requests[0].number')
+          
+          title="CI Failure Analysis ❌"
+          commentId=$(gh api --paginate repos/${{ github.repository }}/issues/$prNum/comments \
+                    --jq "map(select((.user.login==\"github-actions[bot]\") and (.body|contains(\"$title\")))) | first | .id // empty")
+          
+          if [[ -n "$commentId" ]]; then
+            echo "Found existing comment: $commentId. Updating…"
+            gh api -X PATCH repos/${{ github.repository }}/issues/$prNum/comments/$commentId \
+            -f body@"$bodyFile"
+          else
+            echo "No existing comment. Creating…"
+            gh pr comment $prNum --body-file $bodyFile
+          fi
+
+      - name: Post the report as an issue for commit
+        if: steps.fetch_info.outputs.triggerEvent != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bodyFile="analysis.md"
+          callerRunCommitSha="${{ github.event.workflow_run.head_sha }}"
+          callerRunCommit="${callerRunCommitSha:0:7}"
+          title="CI failed in commit \`\`$callerRunCommit\`\`"
+          
+          issueNum=$(gh issue list --repo "${{ github.repository }}" --state open \
+                    --json number,title \
+                    --jq ".[] | select(.title==\"$title\") | .number" \
+                    | head -n1)
+          
+          sed -i "s/<details>//g" $bodyFile
+          sed -i "s/<\/details>//g" $bodyFile
+          
+          if [[ -n "$issueNum" ]]; then
+            echo "Updating issue #$issueNum"
+            gh issue edit "$issueNum" --repo "${{ github.repository }}" \
+              --title "$title" \
+              --body-file "$bodyFile"
+          else
+            echo "Creating new issue"
+            gh issue create --repo "${{ github.repository }}" \
+              --title "$title" \
+              --body-file "$bodyFile"
+          fi
