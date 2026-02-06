@@ -22,8 +22,6 @@ from quark.evaluator.pyeval import PyEval
 class AndroguardImp(BaseApkinfo):
     """Information about apk based on androguard analysis"""
 
-    __slots__ = ("apk", "dalvikvmformat", "analysis", "_manifest")
-
     def __init__(self, apk_filepath: Union[str, PathLike]):
         super().__init__(apk_filepath, "androguard")
 
@@ -59,7 +57,7 @@ class AndroguardImp(BaseApkinfo):
             if not meth_analysis.is_external()
         }
 
-    @property
+    @functools.cached_property
     def all_methods(self) -> Set[MethodObject]:
         return {
             self._convert_to_method_object(meth_analysis)
@@ -261,7 +259,7 @@ class AndroguardImp(BaseApkinfo):
 
         return result
 
-    @property
+    @functools.cached_property
     def superclass_relationships(self) -> Dict[str, Set[str]]:
         hierarchy_dict = defaultdict(set)
 

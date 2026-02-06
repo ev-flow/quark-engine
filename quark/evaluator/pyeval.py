@@ -10,9 +10,11 @@ import logging
 from quark import config
 from quark.core.struct.registerobject import RegisterObject
 from quark.core.struct.tableobject import TableObject
+from quark.core.struct.valuenode import (
+    Primitive, MethodCall, BytecodeOps
+)
 from quark.utils.logger import defaultHandler
 
-MAX_REG_COUNT = 40
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(defaultHandler)
@@ -126,7 +128,7 @@ class PyEval:
         self.eval[
             "fill-array-data"
         ] = lambda ins: self._move_value_and_data_to_register(
-            (ins[0], ins[1], ins[1], ins[2]), "Embedded-array-data()["
+            (ins[0], ins[1], ins[1], ins[2]), "Embedded-array-data()[]"
         )
 
         self.type_mapping = {
@@ -140,21 +142,27 @@ class PyEval:
             "double": "D",
         }
 
-        self.table_obj = TableObject(MAX_REG_COUNT)
+        self.table_obj = TableObject()
         self.ret_stack = []
         self.ret_type = ""
         self.apkinfo = apkinfo
 
     def _invoke(self, instruction, look_up=False, skip_self=False):
         """
-        Function call in Android smali code. It will check if the corresponding table field has a value, if it does,
+        Function call in Android smali code. It will check if the corresponding
+        table field has a value, if it does,
         inserts its own function name into called_by_func column.
         """
 
-        if look_up:
+        opcode, *regList, targetMethod = instruction
+        regIdxList = [int(r[1:]) for r in regList]
+
+        if look_up and len(regIdxList) > 0:
             try:
-                instruction[-1] = self._lookup_implement(
-                    self.table_obj.pop(int(instruction[1][1:])).current_type,
+                targetMethod = self._lookup_implement(
+                    self.table_obj.getLatestRegValue(
+                        regIdxList[0]
+                    ).current_type,
                     instruction[-1],
                     skip_self=skip_self,
                 )
@@ -163,51 +171,70 @@ class PyEval:
             except IndexError:
                 pass
 
-        executed_fuc = instruction[-1]
-        reg_list = instruction[1 : len(instruction) - 1]
-        value_of_reg_list = []
-
+        valueOfRegList = []
         # query the value from hash table based on register index.
-        for reg in reg_list:
-            index = int(reg[1:])
-            obj_stack = self.table_obj.get_obj_list(index)
-            if obj_stack:
-                var_obj = self.table_obj.pop(index)
-                value_of_reg_list.append(var_obj.value)
+        for index in regIdxList:
+            if not self.table_obj.getRegValues(index):
+                # Insert a RegisterObject if one is missing.
+                # Therefore, we can trace the usage of this register.
+                self.table_obj.insert(
+                    index, RegisterObject(Primitive("", None))
+                )
 
-        # Remove duplicate parameter values to save memory
-        seen = {}
-        for idx, val in enumerate(value_of_reg_list):
-            if val in seen:
-                value_of_reg_list[idx] = f"<ref_{seen[val]}>"
-            else:
-                seen[val] = idx
+            value = self.table_obj.getLatestRegValue(index)
+            valueOfRegList.append(value.value)
 
-        invoked_state = f"{executed_fuc}({','.join(value_of_reg_list)})"
+        # Check whether any argument is missing a value type.
+        argIdxWithoutType = [
+            idx
+            for idx, arg in enumerate(valueOfRegList)
+            if isinstance(arg, Primitive) and arg.value_type == ""
+        ]
+        if len(argIdxWithoutType) > 0:
+            # Set the missing value types based on the method's descriptor.
+            argTypes = (
+                []
+                if opcode.startswith("invoke-static")
+                else [targetMethod[: targetMethod.find("->")]]
+            )
+
+            rawArgTypes = targetMethod[
+                targetMethod.find("(") + 1 : targetMethod.find(")")
+            ].split(" ")
+            
+            for argType in rawArgTypes:
+                argTypes.append(argType)
+                if argType in ["J", "D"]:
+                    # Put long and double twice
+                    # because these types take up two registers.
+                    argTypes.append(argType)
+
+            for argIdx in argIdxWithoutType:
+                valueOfRegList[argIdx].value_type = argTypes[argIdx]
+
+        methodCall = MethodCall(targetMethod, tuple(valueOfRegList))
 
         # insert the function and the parameter into called_by_func
-        for reg in reg_list:
-            index = int(reg[1:])
-
-            if not self.table_obj.get_obj_list(index):
-                continue
-
+        for index in regIdxList:
             # add the function name into each parameter table
-            var_obj = self.table_obj.pop(index)
-            var_obj.called_by_func = invoked_state
+            value = self.table_obj.getLatestRegValue(index)
+            value.called_by_func = methodCall
 
-            if var_obj.bears_object():
+            if (
+                value.bears_object()
+                and value.current_type != "Ljava/lang/String;"
+            ):
                 # If the register bears an object, update its value to reflect
                 # the method invocation since the method may modify the
                 # internal state of the object.
-                var_obj.value = invoked_state
+                value.value = methodCall
 
-        if not executed_fuc.endswith(")V"):
+        if not targetMethod.endswith(")V"):
             # push the return value into ret_stack
-            self.ret_stack.append(invoked_state)
+            self.ret_stack.append(methodCall)
 
             # Extract the type of return value
-            self.ret_type = executed_fuc[executed_fuc.index(")") + 1:]
+            self.ret_type = targetMethod[targetMethod.index(")") + 1 :]
 
     def _move_result(self, instruction):
 
@@ -230,7 +257,7 @@ class PyEval:
         RegisterObject. This allow both registers to point to the same object.
         """
         # Get the source object from the table
-        src_obj = self.table_obj.pop(src_reg_idx)
+        src_obj = self.table_obj.getLatestRegValue(src_reg_idx)
 
         # Insert the source object to the destination register.
         self.table_obj.insert(dest_reg_idx, src_obj)
@@ -241,7 +268,9 @@ class PyEval:
         value = instruction[2]
         index = int(reg[1:])
 
-        variable_object = RegisterObject(value=value, value_type=value_type)
+        wrapped_value = Primitive(value, value_type)
+
+        variable_object = RegisterObject(value=wrapped_value, value_type=value_type)
         self.table_obj.insert(index, variable_object)
 
     def _assign_value_wide(self, instruction, value_type=""):
@@ -252,8 +281,10 @@ class PyEval:
         value = instruction[2]
         index = int(reg[1:])
 
-        variable_object = RegisterObject(value=value, value_type=value_type)
-        variable_object2 = RegisterObject(value=value, value_type=value_type)
+        wrapped_value = Primitive(value, value_type)
+
+        variable_object = RegisterObject(value=wrapped_value, value_type=value_type)
+        variable_object2 = RegisterObject(value=wrapped_value, value_type=value_type)
         self.table_obj.insert(index, variable_object)
         self.table_obj.insert(index + 1, variable_object2)
 
@@ -502,7 +533,9 @@ class PyEval:
                 value_type = self.type_mapping[instruction[0][index:]]
             else:
                 array_reg_index = int(instruction[2][1:])
-                value_type = self.table_obj.pop(array_reg_index).current_type
+                value_type = self.table_obj.getLatestRegValue(
+                    array_reg_index
+                ).current_type
                 # If value_type is not None
                 if value_type:
                     value_type = value_type[1:]
@@ -543,7 +576,10 @@ class PyEval:
 
 
         try:
-            value_type = self.table_obj.pop(array_reg_index).current_type[1:]
+            array_reg = self.table_obj.getLatestRegValue(array_reg_index)
+            value_type = (
+                array_reg.current_type[1:] if array_reg.current_type else None
+            )
             destination = int(instruction[1][1:])
             source_list = [int(reg[1:]) for reg in instruction[2:]]
 
@@ -672,8 +708,8 @@ class PyEval:
         except IndexError as e:
             log.exception(f"{e} in BINOP_KIND")
 
-    def show_table(self):
-        return self.table_obj.get_table()
+    def show_table(self) -> dict[int, list[RegisterObject]]:
+        return self.table_obj.getTable()
 
     def _move_value_to_register(
         self, instruction, str_format, wide=False, value_type=None
@@ -695,7 +731,15 @@ class PyEval:
                 value_type=value_type,
             )
 
-    def _lookup_implement(self, instance_type, method_full_name, skip_self=False):
+    def _lookup_implement(
+        self,
+        instance_type: str | None,
+        method_full_name: str,
+        skip_self: bool = False,
+    ):
+        if instance_type is None or len(instance_type) == 0:
+            return method_full_name
+
         class_name, signature = method_full_name.split("->")
         index = signature.index("(")
         method_name, descriptor = signature[:index], signature[index:]
@@ -742,14 +786,11 @@ class PyEval:
         data = instruction[-1]
 
         for source in source_list:
-            if not self.table_obj.get_obj_list(source):
-                value_dict = {
-                    f"src{0}": instruction
-                }
-                value_dict["data"] = data
-
+            if not self.table_obj.getRegValues(source):
+                # A source register used by the instruction is not initialized,
+                # create a RegisterObject for it.
                 new_register = RegisterObject(
-                    value=str_format.format(**value_dict),
+                    value=Primitive("", value_type),
                     value_type=value_type,
                 )
                 self.table_obj.insert(source, new_register)
@@ -785,21 +826,26 @@ class PyEval:
         self, source_list, destination, str_format, data=None, value_type=None
     ):
         try:
-            source_register_list = [self.table_obj.pop(index) for index in source_list]
+            source_register_list = [
+                self.table_obj.getLatestRegValue(index)
+                for index in source_list
+            ]
         except IndexError:
             return
+
+        # If it's a simple move, preserve the value node.
+        if len(source_register_list) == 1 and str_format == "{src0}":
+            new_value = source_register_list[0].value
+        else:
+            # For complex operations, create a value node for the operation.
+            source_values = [reg.value for reg in source_register_list]
+            new_value = BytecodeOps(str_format, tuple(source_values), data)
 
         if not value_type:
             value_type = source_register_list[0].current_type
 
-        value_dict = {
-            f"src{index}": register.value
-            for index, register in enumerate(source_register_list)
-        }
-        value_dict["data"] = data
-
         new_register = RegisterObject(
-            value=str_format.format(**value_dict),
+            value=new_value,
             value_type=value_type,
         )
 

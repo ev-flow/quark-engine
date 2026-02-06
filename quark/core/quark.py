@@ -2,11 +2,11 @@
 # This file is part of Quark-Engine - https://github.com/quark-engine/quark-engine
 # See the file 'LICENSE' for copying permission.
 
-import collections
+from itertools import product
 import operator
 import os
 import re
-from typing import Generator, List, Tuple
+from typing import Any, Generator, List, Mapping, Sequence, Tuple
 
 import numpy as np
 import csv
@@ -16,7 +16,10 @@ from quark.core.shurikenapkinfo import ShurikenImp
 from quark.core.apkinfo import AndroguardImp
 from quark.core.rzapkinfo import RizinImp
 from quark.core.r2apkinfo import R2Imp
+from quark.core.struct.methodobject import MethodObject
+from quark.core.struct.registerobject import RegisterObject
 from quark.evaluator.pyeval import PyEval
+from quark.core.struct.valuenode import MethodCall, iteratePriorCalls, iteratePriorPrimitives
 from quark.utils import tools
 from quark.utils.colors import (
     colorful_report,
@@ -224,189 +227,189 @@ class Quark:
 
         return pyeval.show_table()
 
-    def check_parameter_on_single_method(
+    def checkParameterOnSingleMethod(
         self,
-        usage_table,
-        first_method,
-        second_method,
-        keyword_item_list=None,
-        regex=False,
-    ) -> Generator[Tuple[str, List[str]], None, None]:
-        """Check the usage of the same parameter between two method.
+        usageTable: Mapping[int, Sequence[RegisterObject]],
+        firstMethod: MethodObject,
+        secondMethod: MethodObject,
+        firstMethodKeywords: Sequence | None = None,
+        secondMethodKeywords: Sequence | None = None,
+        regex: bool = False,
+    ) -> Generator[Tuple[Tuple[MethodCall, MethodCall], List[str]], None, None]:
+        """Check the usage of the same parameter between two methods.
 
-        :param usage_table: the usage of the involved registers
-        :param first_method: the first API or the method calling the first APIs
-        :param second_method: the second API or the method calling the second
-         APIs
-        :param keyword_item_list: keywords required to be present in the usage
-         , defaults to None
-        :param regex: treat the keywords as regular expressions, defaults to
-         False
-        :yield: _description_
+        :param usageTable: a table that records the usage of each register
+        :param firstMethod: the first API or a method calling the first API
+        :param secondMethod: the second API or a method calling the second API
+        :param firstMethodKeywords: keywords to match for the first method,
+        defaults to None
+        :param secondMethodKeywords: keywords to match for the second method,
+        defaults to None
+        :param regex: treat keywords as regular expressions, defaults to False
+        :yield: a tuple of matched method call pairs and matched keywords
         """
-        first_method_pattern = PyEval.get_method_pattern(
-            first_method.class_name, first_method.name, first_method.descriptor
+        # Find the first and second method call that share same register
+        matchedCallPairs = self.findMethodCallPairs(
+            usageTable,
+            (
+                firstMethod.class_name,
+                firstMethod.name,
+                firstMethod.descriptor,
+            ),
+            (
+                secondMethod.class_name,
+                secondMethod.name,
+                secondMethod.descriptor,
+            ),
         )
 
-        second_method_pattern = PyEval.get_method_pattern(
-            second_method.class_name,
-            second_method.name,
-            second_method.descriptor,
-        )
+        # Skip if no keywords provided for both methods.
+        if not firstMethodKeywords and not secondMethodKeywords:
+            for matchedCallPair in matchedCallPairs:
+                yield (matchedCallPair, [])
+            return
 
-        register_usage_records = (
-            c_func
-            for table in usage_table
-            for val_obj in table
-            for c_func in val_obj.called_by_func
-        )
-
-        register_usage_records = (
-            c_func
-            for table in usage_table
-            for val_obj in table
-            for c_func in val_obj.called_by_func
-        )
-
-        matched_records = filter(
-            lambda r: first_method_pattern in r and second_method_pattern in r,
-            register_usage_records,
-        )
-
-        for record in matched_records:
-            if keyword_item_list and list(keyword_item_list):
-                matched_keyword_list = self.check_parameter_values(
-                    record,
-                    (first_method_pattern, second_method_pattern),
-                    keyword_item_list,
-                    regex,
+        # Do keyword matching
+        for firstCall, secondCall in matchedCallPairs:
+            matchedKeywords = []
+            if firstMethodKeywords is not None:
+                # Check if arguments of the first call match any keywords.
+                first_matched = self.getMatchedKeywords(
+                    firstCall, firstMethodKeywords, regex=regex
                 )
+                matchedKeywords.extend(first_matched)
 
-                if matched_keyword_list:
-                    yield (record, matched_keyword_list)
+            if secondMethodKeywords is not None:
+                # Check if arguments of the second call match any keywords.
+                second_matched = self.getMatchedKeywords(
+                    secondCall, secondMethodKeywords, regex=regex
+                )
+                matchedKeywords.extend(second_matched)
 
-            else:
-                yield (record, None)
+            # Pass only if at least one keyword was matched.
+            if len(matchedKeywords) > 0:
+                yield ((firstCall, secondCall), matchedKeywords)
 
     def check_parameter(
         self,
-        parent_function,
-        first_method_list,
-        second_method_list,
-        keyword_item_list=None,
-        regex=False,
-    ):
-        """
-        Check the usage of the same parameter between two method.
+        parent_method: MethodObject,
+        first_method_list: Sequence[MethodObject],
+        second_method_list: Sequence[MethodObject],
+        first_method_keywords: Sequence[Any] | None = None,
+        second_method_keywords: Sequence[Any] | None = None,
+        regex: bool = False,
+    ) -> bool:
+        """Check the usage of the same parameter between two method.
 
-        :param parent_function: function that call the first function and
-         second functions at the same time.
-        :param first_method_list: function which calls before the second
-         method.
-        :param second_method_list: function which calls after the first method.
+        :param parent_method: the method to do the check
+        :param first_method_list: a list of first API and methods that calls
+        the first API
+        :param second_method_list: a list of second API and methods that calls
+        the second API
+        :param first_method_keywords: keywords to match for the first method,
+        defaults to None
+        :param second_method_keywords: keywords to match for the second method,
+        defaults to None
+        :param regex: treat keywords as regular expressions, defaults to False
         :return: True or False
         """
-        if parent_function is None:
+        if parent_method is None:
             raise TypeError("Parent function is None.")
 
         if first_method_list is None or second_method_list is None:
             raise TypeError("First or second method list is None.")
 
-        if keyword_item_list:
-            keyword_item_list = list(keyword_item_list)
-            if not any(keyword_item_list):
-                keyword_item_list = None
-
-        state = False
-
         # Evaluate the opcode in the parent function
-        usage_table = self._evaluate_method(parent_function)
+        usage_table = self._evaluate_method(parent_method)
 
         # Check if any of the target methods (the first and second methods)
         #  used the same registers.
         state = False
-        for first_call_method in first_method_list:
-            for second_call_method in second_method_list:
-                result_generator = self.check_parameter_on_single_method(
-                    usage_table,
-                    first_call_method,
-                    second_call_method,
-                    keyword_item_list,
-                    regex,
-                )
+        for first_method, second_method in product(
+            first_method_list, second_method_list
+        ):
+            results = self.checkParameterOnSingleMethod(
+                usage_table,
+                first_method,
+                second_method,
+                first_method_keywords,
+                second_method_keywords,
+                regex,
+            )
 
-                found = next(result_generator, None) is not None
+            found = next(results, None) is not None
 
-                # Build for the call graph
-                if found:
-                    call_graph_analysis = {
-                        "parent": parent_function,
-                        "first_call": first_call_method,
-                        "second_call": second_call_method,
-                        "apkinfo": self.apkinfo,
-                        "first_api": self.quark_analysis.first_api,
-                        "second_api": self.quark_analysis.second_api,
-                        "crime": self.quark_analysis.crime_description,
-                    }
-                    self.quark_analysis.call_graph_analysis_list.append(
-                        call_graph_analysis
-                    )
+            if not found:
+                continue
 
-                    # Record the mapping between the parent function and the
-                    #  wrapper method
-                    self.quark_analysis.parent_wrapper_mapping[
-                        parent_function.full_name
-                    ] = self.apkinfo.get_wrapper_smali(
-                        parent_function,
-                        first_call_method,
-                        second_call_method,
-                    )
+            # Build for the call graph
+            call_graph_analysis = {
+                "parent": parent_method,
+                "first_call": first_method,
+                "second_call": second_method,
+                "apkinfo": self.apkinfo,
+                "first_api": self.quark_analysis.first_api,
+                "second_api": self.quark_analysis.second_api,
+                "crime": self.quark_analysis.crime_description,
+            }
+            self.quark_analysis.call_graph_analysis_list.append(
+                call_graph_analysis
+            )
 
-                    state = True
+            # Record the mapping between the parent function and the
+            #  wrapper method
+            self.quark_analysis.parent_wrapper_mapping[
+                parent_method.full_name
+            ] = self.apkinfo.get_wrapper_smali(
+                parent_method,
+                first_method,
+                second_method,
+            )
+
+            state = True
 
         return state
 
     @staticmethod
-    def check_parameter_values(
-        source_str, pattern_list, keyword_item_list, regex=False
+    def getMatchedKeywords(
+        methodCall: MethodCall, keywords: Sequence, regex: bool
     ) -> List[str]:
-        matched_string_set = set()
+        """Get matched keywords from the parameters of a method call.
 
-        parameter_strs = [
-            tools.get_parenthetic_contents(
-                source_str, source_str.index(pattern) + len(pattern)
-            )
-            for pattern in pattern_list
-        ]
+        :param method_call: the method call to be checked
+        :param keywords: keywords to be matched
+        :param regex: whether to treat keywords as regular expressions
+        :yield: a list of matched keywords
+        """
+        matchedStrSet = set()
+        primitiveValues = {
+            str(primitive.value)
+            for primitive in iteratePriorPrimitives(methodCall)
+        }
 
-        for parameter_str, keyword_item in zip(
-            parameter_strs, keyword_item_list
-        ):
-            if keyword_item is None:
-                continue
+        if not regex:
+            return [
+                value
+                for value in primitiveValues
+                if any(kw in value for kw in keywords)
+            ]
 
-            for keyword in keyword_item:
-                if regex:
-                    matched_strings = re.findall(keyword, parameter_str)
-                    if any(matched_strings):
-                        matched_strings = filter(bool, matched_strings)
-                        matched_strings = list(matched_strings)
+        for keyword in keywords:
+            regexPattern = re.compile(keyword)
 
-                        element = matched_strings[0]
-                        if isinstance(
-                            element, collections.abc.Sequence
-                        ) and not isinstance(element, str):
-                            for str_list in matched_strings:
-                                matched_string_set.update(str_list)
+            for value in primitiveValues:
+                matchedStrings = regexPattern.findall(value)
+                if not any(matchedStrings):
+                    continue
 
-                        else:
-                            matched_string_set.update(matched_strings)
-
+                # Filter out empty strings from tuples in the result
+                if isinstance(matchedStrings[0], tuple):
+                    for matchTuple in matchedStrings:
+                        matchedStrSet.update(filter(bool, matchTuple))
                 else:
-                    if str(keyword) in parameter_str:
-                        matched_string_set.add(keyword)
+                    matchedStrSet.update(filter(bool, matchedStrings))
 
-        return [e for e in list(matched_string_set) if bool(e)]
+        return [e for e in list(matchedStrSet) if bool(e)]
 
     def find_api_usage(self, class_name, method_name, descriptor_name):
         method_list = []
@@ -561,17 +564,13 @@ class Quark:
                             parent_function
                         )
 
-                        keyword_item_list = (
-                            rule_obj.api[i].get("match_keywords", None)
-                            for i in range(2)
-                        )
-
                         # Level 5: Handling The Same Register Check
                         if self.check_parameter(
                             parent_function,
                             first_wrapper,
                             second_wrapper,
-                            keyword_item_list=keyword_item_list,
+                            rule_obj.firstApiKeywords,
+                            rule_obj.secondApiKeywords,
                         ):
                             rule_obj.check_item[4] = True
                             self.quark_analysis.level_5_result.append(
@@ -856,6 +855,39 @@ class Quark:
         output_parent_function_table(data_bundle)
         output_parent_function_json(data_bundle)
         output_parent_function_graph(data_bundle)
+
+    @staticmethod
+    def findMethodCallPairs(
+        usageTable: Mapping[int, Sequence[RegisterObject]],
+        firstMethodInfo: tuple[str, str, str],
+        secondMethodInfo: tuple[str, str, str],
+    ) -> Generator[tuple[MethodCall, MethodCall], None, None]:
+
+        allRegisterValues = (
+            registerValue
+            for register in usageTable.values()
+            for registerValue in register
+        )
+
+        secondMethodPattern = PyEval.get_method_pattern(*secondMethodInfo)
+
+        secondAPICalls = (
+            call
+            for registerValue in allRegisterValues
+            for call in registerValue.iterateInvolvedCalls()
+            if call.method == secondMethodPattern
+        )
+
+        firstMethodPattern = PyEval.get_method_pattern(*firstMethodInfo)
+
+        matchedCallPairs = (
+            (firstCall, secondCall)
+            for secondCall in secondAPICalls
+            for firstCall in iteratePriorCalls(secondCall)
+            if firstCall.method == firstMethodPattern
+        )
+
+        yield from matchedCallPairs
 
 
 if __name__ == "__main__":

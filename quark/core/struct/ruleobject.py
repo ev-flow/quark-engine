@@ -100,6 +100,26 @@ class RuleObject:
         :return: integer
         """
         return self._score
+    
+    @property
+    def firstApiKeywords(self) -> list | None:
+        """
+        The keywords to match for the first API in the rule.
+
+        :return: list or None
+        """
+        keywords = self._api[0].get("match_keywords", None)
+        return keywords if isinstance(keywords, list) and len(keywords) > 0 else None
+    
+    @property
+    def secondApiKeywords(self) -> list | None:
+        """
+        The keywords to match for the second API in the rule.
+
+        :return: list or None
+        """
+        keywords = self._api[1].get("match_keywords", None)
+        return keywords if isinstance(keywords, list) and len(keywords) > 0 else None
 
     def get_score(self, confidence):
         """
