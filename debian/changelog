@@ -1,3 +1,19 @@
+quark-engine (26.2.1-0kali1) kali-dev; urgency=medium
+
+  * Dependency Update
+
+    - Bump requests max version to 2.32.3. (#856)
+
+  * Document Enhancement
+
+    - Reconstruct documentation. (#857)
+
+  * New Feature
+
+    - Add support for handling semi-corrupted Android APKs (#859)
+
+ --  Shaun Dang <pulorsok@gmail.com>  Mon, 02 Feb 2026 10:50:27 +0800
+
 quark-engine (26.1.1-0kali1) kali-dev; urgency=medium
 
   * Rule Enhancement
