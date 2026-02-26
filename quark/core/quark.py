@@ -164,13 +164,14 @@ class Quark:
         :return: True or False
         """
         state = False
+        mutual_parent_lowerfunc = self.apkinfo.lowerfunc(mutual_parent)
 
         for first_call_method in first_method_list:
             for second_call_method in second_method_list:
 
                 seq_table = [
                     (call, number)
-                    for call, number in self.apkinfo.lowerfunc(mutual_parent)
+                    for call, number in mutual_parent_lowerfunc
                     if call in (first_call_method, second_call_method)
                 ]
 
