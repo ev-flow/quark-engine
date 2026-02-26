@@ -14,7 +14,7 @@ def remove_dup_list(element):
     return list(set(element))
 
 
-def contains(subset_to_check, target_list):
+def contains(subset_to_check: list[str], target_list: list[str]):
     """
     Check the sequence pattern within two list.
     -----------------------------------------------------------------
@@ -27,12 +27,11 @@ def contains(subset_to_check, target_list):
     then it will return False.
     """
 
-    target_copy = copy.copy(target_list)
-
-    # Delete elements that do not exist in the subset_to_check list
-    for item in target_copy:
-        if item not in subset_to_check:
-            target_copy.remove(item)
+    target_copy = [
+        item 
+        for item in target_list 
+        if item in subset_to_check
+    ]
 
     for i in range(len(target_copy) - len(subset_to_check) + 1):
         for j in range(len(subset_to_check)):
