@@ -23,7 +23,7 @@ quarkAgentRequirements = [
     "langchain==0.2.11",
     "langchain-core==0.2.23",
     "langchain-openai==0.1.17",
-    "flask==2.2.5",
+    "flask==3.1.3",
 ]
 
 setuptools.setup(
