@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Set, Union
 from androguard.core.analysis.analysis import MethodAnalysis
 from androguard.core.bytecodes.dvm_types import Operand
 from androguard.misc import AnalyzeAPK, get_default_session
+from androguard.core.dex import Instruction45cc, Instruction4rcc, get_kind, Kind
 
 from quark.core.interface.baseapkinfo import BaseApkinfo
 from quark.core.struct.bytecodeobject import BytecodeObject
@@ -282,9 +283,16 @@ class AndroguardImp(BaseApkinfo):
             ) in method_analysis.get_method().get_instructions_idx():
                 bytecode_obj = None
                 register_list = []
+                
+                if type(ins) is Instruction45cc:
+                    ins_operands = self.get_instruction45cc_operands(ins)
+                elif type(ins) is Instruction4rcc:
+                    ins_operands = self.get_instruction4rcc_operands(ins)
+                else:
+                    ins_operands = ins.get_operands()
 
                 # count the number of the registers.
-                length_operands = len(ins.get_operands())
+                length_operands = len(ins_operands)
                 if length_operands == 0:
                     # No register, no parameter
                     bytecode_obj = BytecodeObject(
@@ -296,14 +304,14 @@ class AndroguardImp(BaseApkinfo):
                     index_of_parameter_starts = None
                     for i in range(length_operands - 1, -1, -1):
                         if (
-                            not isinstance(ins.get_operands()[i][0], Operand)
-                            or ins.get_operands()[i][0].name != "REGISTER"
+                            not isinstance(ins_operands[i][0], Operand)
+                            or ins_operands[i][0].name != "REGISTER"
                         ):
                             index_of_parameter_starts = i
                             break
 
                     if index_of_parameter_starts is not None:
-                        parameter = ins.get_operands()[
+                        parameter = ins_operands[
                             index_of_parameter_starts
                         ]
                         parameter = (
@@ -314,13 +322,13 @@ class AndroguardImp(BaseApkinfo):
 
                         for i in range(index_of_parameter_starts):
                             register_list.append(
-                                "v" + str(ins.get_operands()[i][1]),
+                                "v" + str(ins_operands[i][1]),
                             )
                     else:
                         parameter = None
                         for i in range(length_operands):
                             register_list.append(
-                                "v" + str(ins.get_operands()[i][1]),
+                                "v" + str(ins_operands[i][1]),
                             )
 
                     bytecode_obj = BytecodeObject(
@@ -331,6 +339,32 @@ class AndroguardImp(BaseApkinfo):
         except AttributeError:
             # TODO Log the rule here
             pass
+
+    def get_instruction45cc_operands(self, ins: Instruction45cc):
+        operands = []
+        if ins.A > 0: 
+            operands.append((Operand.REGISTER, ins.C))
+        if ins.A > 1: 
+            operands.append((Operand.REGISTER, ins.D))
+        if ins.A > 2: 
+            operands.append((Operand.REGISTER, ins.E))
+        if ins.A > 3: 
+            operands.append((Operand.REGISTER, ins.F))
+        if ins.A > 4: 
+            operands.append((Operand.REGISTER, ins.G))
+
+        kind = get_kind(ins.cm, Kind.METH, ins.BBBB)
+        operands.append((Operand.KIND + ins.get_kind(), ins.BBBB, kind))
+        return operands
+
+    def get_instruction4rcc_operands(self, ins: Instruction4rcc):
+        operands = []
+        for r in range(ins.CCCC, ins.NNNN + 1):
+            operands.append((Operand.REGISTER, r))
+
+        kind = get_kind(ins.cm, Kind.METH, ins.BBBB)
+        operands.append((Operand.KIND + ins.get_kind(), ins.BBBB, kind))
+        return operands
 
     def get_strings(self) -> str:
         return {
