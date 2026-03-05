@@ -31,6 +31,7 @@ class BaseApkinfo:
         "data",
         "isPatched",
         "_manifest",
+        "auto_fix_checksum",
     ]
 
     def __init__(
