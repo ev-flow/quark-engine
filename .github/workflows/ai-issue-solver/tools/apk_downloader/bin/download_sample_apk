@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+# Target APK URL to download
+URL="https://github.com/ev-flow/apk-samples/raw/refs/heads/master/malware-samples/Ahmyth.apk"
+
+# Default filename if one is not provided as the first argument
+TARGET_PATH="${1:-Ahmyth.apk}"
+
+echo "Downloading sample APK from $URL to $TARGET_PATH..."
+
+if curl -L -f -o "$TARGET_PATH" "$URL"; then
+    echo "Successfully downloaded APK to $TARGET_PATH."
+    ls -lh "$TARGET_PATH"
+else
+    echo "Failed to download APK from $URL."
+    exit 1
+fi

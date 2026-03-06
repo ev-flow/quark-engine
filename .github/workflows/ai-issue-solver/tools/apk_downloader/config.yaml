@@ -1,0 +1,10 @@
+tools:
+  download_sample_apk:
+    signature: "download_sample_apk [<target_path>]"
+    docstring: "Downloads the sample APKs for testing."
+    arguments:
+      - name: target_path
+        type: string
+        description: "The local filename or path to save the APKs"
+        required: false
+    execution_timeout: 300

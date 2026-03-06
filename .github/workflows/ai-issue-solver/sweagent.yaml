@@ -1,0 +1,97 @@
+agent:
+  model:
+    name: "gpt-4o"
+    total_cost_limit: 3.0
+    delay: 0.5
+    retry:
+      retries: 3
+      min_wait: 3
+      max_wait: 5
+    temperature: 1
+    top_p: null
+  templates:
+    system_template: |-
+      You are a senior python engineer that can interact with a computer to solve tasks.
+    instance_template: |-
+      <uploaded_files>
+      {{working_dir}}
+      </uploaded_files>
+      I've uploaded a python code repository in the directory {{working_dir}}. Consider the following error description:
+
+      <error_description>
+      {{problem_statement}}
+      </error_description>
+
+      Can you help me implement the necessary changes to the repository so that the requirements specified in the <error_description> are met?
+      Your task is to make the minimal but sufficient changes to files in the {{working_dir}} directory to ensure the <error_description> is satisfied.
+      Follow these steps to resolve the issue:
+      1. Find and read code relevant to the <error_description>
+      2. Obtain APK samples by tool apk-downloader. You can place APKs in the working directory
+      3. Create a script to reproduce the error and execute it with `PYTHONPATH=. python <filename.py>` using the bash tool, to confirm the error
+      4. Edit the source code of the repo to resolve the error
+      5. Rerun your reproduce script and confirm that the error is fixed!
+      6. Think about edge cases and make sure your fix handles them as well
+      Think thoroughly. Explain your thinking before taking any actions. It's fine if it's very long.
+    next_step_template: |-
+      OBSERVATION:
+      {{observation}}
+    next_step_no_output_template: |-
+      Your command ran successfully and did not produce any output.
+    demonstration_template: |
+      Here is a demonstration of how to fix issues. It is included to show how to correctly use the interface.
+      You do not need to follow exactly what is done in the demonstration.
+      --- DEMONSTRATION ---
+      {{demonstration}}
+      --- END OF DEMONSTRATION ---
+    demonstrations:
+      - demos/tool-usage-example/tool-usage-example.yaml
+  tools:
+    env_variables:
+      PAGER: cat
+      MANPAGER: cat
+      LESS: -R
+      PIP_PROGRESS_BAR: "off"
+      TQDM_DISABLE: "1"
+      GIT_PAGER: cat
+    bundles:
+      - path: tools/registry
+      - path: tools/edit_anthropic
+      - path: tools/review_on_submit_m
+      - path: tools/search
+      - path: tools/web_browser
+      - path: tools/image_tools
+      - path: tools/apk_downloader
+      - path: tools/quark_rules_downloader
+    registry_variables:
+      USE_FILEMAP: "true"
+      SUBMIT_REVIEW_MESSAGES:
+        - |
+          Thank you for your work on this issue. Please carefully follow the steps below to help review your changes.
+
+          1. If you made any changes to your code after running the reproduction script, please run the reproduction script again.
+             If the reproduction script is failing, please revisit your changes and make sure they are correct.
+             If you have already removed your reproduction script, please ignore this step.
+          2. Remove your reproduction script (if you haven't done so already, use bash tool with `rm <filename.py>` to remove it).
+          3. Run the submit command again to confirm.
+
+          Here is a list of all of your changes:
+
+          <diff>
+          {{diff}}
+          </diff>
+    enable_bash_tool: true
+    parse_function:
+      type: function_calling
+  history_processors:
+    - type: cache_control
+      last_n_messages: 5
+env:
+  repo:
+    base_commit: "master"
+  post_startup_commands:
+    - "pip install -e ."
+  post_startup_command_timeout: 500
+actions:
+  open_pr: true
+  pr_config:
+    skip_if_commits_reference_issue: false

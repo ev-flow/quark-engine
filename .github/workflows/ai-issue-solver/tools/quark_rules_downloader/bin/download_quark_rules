@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+# Target directory for cloning
+TARGET_DIRECTORY="$1"
+
+if [ -z "$TARGET_DIRECTORY" ]; then
+    echo "Error: target_directory cannot be empty."
+    exit 1
+fi
+
+REPO_URL="https://github.com/ev-flow/quark-rules"
+echo "Cloning ${REPO_URL} into ${TARGET_DIRECTORY}..."
+
+if git clone "${REPO_URL}" "${TARGET_DIRECTORY}"; then
+    RULES_PATH="${TARGET_DIRECTORY}/rules"
+    echo "Quark rules files are located in: ${RULES_PATH}/"
+else
+    echo "Error cloning repository."
+    exit 1
+fi

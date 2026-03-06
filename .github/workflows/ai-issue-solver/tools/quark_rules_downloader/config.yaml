@@ -1,0 +1,10 @@
+tools:
+  download_quark_rules:
+    signature: "download_quark_rules <target_directory>"
+    docstring: "Clones the quark-rules repository into the specified directory."
+    arguments:
+      - name: target_directory
+        type: string
+        description: "The local path where the quark-rules repository should be cloned."
+        required: true
+    execution_timeout: 300

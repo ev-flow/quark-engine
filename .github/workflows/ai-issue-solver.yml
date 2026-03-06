@@ -1,0 +1,148 @@
+name: AI Issue Solver
+run-name: Solve Issue ${{ github.event.inputs.issue_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue Number"
+        required: true
+        type: number
+      model_to_use:
+        description: "Model to use"
+        required: true
+        type: string
+        default: gpt-5.1-codex-max
+      total_cost_limit:
+        description: "Total cost limit (USD)"
+        required: true
+        type: number
+        default: 3.0
+
+jobs:
+  print_inputs:
+    name: Inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show Inputs
+        run: |
+          echo "Model to use: ${{ github.event.inputs.model_to_use }}"
+          echo "Issue Number: ${{ github.event.inputs.issue_number }}"
+          echo "Total cost limit: ${{ github.event.inputs.total_cost_limit }}"
+
+  run_ai_issue_solver:
+    name: Run AI Issue Solver
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: "3.11"
+      ISSUE_URL: ${{ github.server_url}}/${{ github.repository }}/issues/${{ github.event.inputs.issue_number }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "${{ env.PYTHON_VERSION }}"
+
+      - name: Clone SWE-agent
+        run: |
+          echo "Creating temporary directory for SWE-agent..."
+          TEMP_DIR=$(mktemp -d)
+          echo "Temporary directory created: $TEMP_DIR"
+          echo "SWE_AGENT_PATH=$TEMP_DIR/SWE-agent" >> $GITHUB_ENV
+          echo "Cloning SWE-agent repository into $TEMP_DIR/SWE-agent..."
+          git clone https://github.com/SWE-agent/SWE-agent $TEMP_DIR/SWE-agent
+          cd $TEMP_DIR/SWE-agent
+          echo "Checking out fixed version (commit 602b8accb865dc7b72525777a01df30ef31755a3)..."
+          git checkout 602b8accb865dc7b72525777a01df30ef31755a3
+
+      - name: Copy tools and AI examples
+        run: |
+          echo "Creating tools directory in SWE-agent path: ${{ env.SWE_AGENT_PATH }}/tools"
+          mkdir -p ${{ env.SWE_AGENT_PATH }}/tools
+          echo "Copying local workflow tools from ${{ github.workspace }}/.github/workflows/ai-issue-solver/ to ${{ env.SWE_AGENT_PATH }}/"
+          cp -r "${{ github.workspace }}/.github/workflows/ai-issue-solver/." "${{ env.SWE_AGENT_PATH }}/"
+
+      - name: Install SWE-agent
+        run: |
+          echo "Changing directory to SWE-agent path: ${{ env.SWE_AGENT_PATH }}"
+          cd ${{ env.SWE_AGENT_PATH }}
+          echo "Upgrading pip..."
+          python -m pip install --upgrade pip
+          echo "Installing SWE-agent in editable mode..."
+          pip install --editable .
+          echo "Verifying SWE-agent installation..."
+          sweagent --help
+
+      - name: Solve issue
+        run: |
+          # Create output folder
+          OUTPUT_DIR=$(mktemp -d -t sweagent-output-XXXXXX)
+          echo "Created SWE-agent output directory: $OUTPUT_DIR"
+          echo "SWE_AGENT_OUTPUT_PATH=$OUTPUT_DIR" >> "$GITHUB_ENV"
+
+          # Run SWE-agent
+          export OPENAI_API_KEY=${{ secrets.OPENAI_KEY }}
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          sweagent run \
+            --config ${{ github.workspace }}/.github/workflows/ai-issue-solver/sweagent.yaml \
+            --env.repo.path=${{ github.workspace }} --env.repo.type=local \
+            --env.deployment.image=python:${{ env.PYTHON_VERSION }} \
+            --problem_statement.github_url=${{ env.ISSUE_URL }} \
+            --agent.model.name=${{ github.event.inputs.model_to_use }} \
+            --agent.model.total_cost_limit=${{ github.event.inputs.total_cost_limit }} \
+            --output_dir=$OUTPUT_DIR
+
+      - name: Upload trajectories
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trajectory-files
+          path: ${{ env.SWE_AGENT_OUTPUT_PATH }}
+
+      - name: Upload code patch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-files
+          path: ${{ env.SWE_AGENT_OUTPUT_PATH }}/**/*.patch
+
+      - name: Print summary
+        if: always()
+        run: |
+          # Extract and Print Total Cost
+          OUTPUT_PATH="${{ env.SWE_AGENT_OUTPUT_PATH }}"
+          if [ -z "$OUTPUT_PATH" ] || [ ! -d "$OUTPUT_PATH" ]; then
+            echo "::warning::Total Cost: Not Found (SWE_AGENT_OUTPUT_PATH is invalid or empty)"
+            exit 0
+          fi
+
+          TOTAL_COST=$(grep -oP 'total_cost=\K[0-9]+\.[0-9]+' "$OUTPUT_PATH"/**/*.debug.log | tail -1)
+
+          if [ -z "$TOTAL_COST" ]; then
+            echo "::warning::Total Cost: Not Found"
+          else
+            echo "::notice::Total Cost: $TOTAL_COST"
+          fi
+
+          # Extract and Print PR URL
+          OUTPUT_PATH="${{ env.SWE_AGENT_OUTPUT_PATH }}"
+          if [ -z "$OUTPUT_PATH" ] || [ ! -d "$OUTPUT_PATH" ]; then
+            echo "::warning::PR URL: Not Found (SWE_AGENT_OUTPUT_PATH is invalid or empty)"
+            exit 0
+          fi
+
+          PR_URL=$(sed -n -E 's|.*swea-open_pr - 🎉 PR created as a draft at (${{ github.server_url}}/${{ github.repository }}/pull/[0-9]+).*|\1|p;T;q' "$OUTPUT_PATH"/**/*.info.log)
+
+          if [ -z "$PR_URL" ]; then
+            echo "::warning::PR URL: Not Found"
+          else
+            echo "::notice::PR created: $PR_URL"
+          fi
+
+          # Print issue URL
+          echo "::notice::Issue URL: ${{ env.ISSUE_URL }}"
