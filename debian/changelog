@@ -1,3 +1,19 @@
+quark-engine (26.3.1-0kali1) kali-dev; urgency=medium
+
+  * Performance Improvement
+
+    - Record register usage instead of full state to reduce memory usage. (#845)
+
+  * Document Enhancement
+
+    - Add an analysis report for the ToxicPanda malware family. (#863)
+
+  * Bug Fix
+
+    - Add a safe DEX checksum auto-repair flow for androguard-based parsing. (#866)
+
+ --  Zin Wong <chriswangxxxxx@gmail.com>  Fri, 06 Mar 2026 18:53:43 +0800
+
 quark-engine (26.2.1-0kali1) kali-dev; urgency=medium
 
   * Dependency Update
