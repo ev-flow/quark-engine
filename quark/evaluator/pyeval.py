@@ -102,7 +102,7 @@ class PyEval:
             for second_type in ("int", "long", "float", "double"):
                 if first_type == second_type:
                     continue
-                self.eval[f"{first_type}-{second_type}"] = self.CAST_TYPE
+                self.eval[f"{first_type}-to-{second_type}"] = self.CAST_TYPE
 
         # binop_kind
         for prefix in (
@@ -638,7 +638,7 @@ class PyEval:
     @logger
     def CAST_TYPE(self, instruction):
         try:
-            part = instruction[0].split("-")
+            part = instruction[0].split("-to-")
             value_type = self.type_mapping[part[1]]
 
             if part[0] in ("double", "long"):
