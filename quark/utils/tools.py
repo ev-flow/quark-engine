@@ -5,6 +5,7 @@
 import copy
 import re
 from typing import Any, List, Union
+from quark.core.struct.methodobject import MethodObject
 
 
 def remove_dup_list(element):
@@ -14,9 +15,11 @@ def remove_dup_list(element):
     return list(set(element))
 
 
-def contains(subset_to_check: list[str], target_list: list[str]):
+def contains(subset_to_check: List[MethodObject], target_list: List[MethodObject]):
     """
-    Check the sequence pattern within two list.
+    Check the sequence pattern within two list. Elements of subset_to_check have to be all present in target_list (possibly, with gaps).
+
+    Objects of class MethodObject are equal, if class_name, name and descriptor are equal.
     -----------------------------------------------------------------
     subset_to_check = ["getCellLocation", "sendTextMessage"]
     target_list = ["put", "getCellLocation", "query", "sendTextMessage"]
