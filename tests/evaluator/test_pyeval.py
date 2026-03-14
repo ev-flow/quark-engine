@@ -167,19 +167,19 @@ def neg_not_wide_kind(request):
 
 ALL_CAST_KIND = list(
     {
-        prefix + "-" + postfix
+        prefix + "-to-" + postfix
         for prefix, postfix in itertools.product(
             ("int", "long", "float", "double"),
             ("int", "long", "float", "double"),
         )
     }.difference(
         {
-            "int-int",
-            "long-long",
-            "float-float",
-            "double-double",
-            "double-long",
-            "long-double",
+            "int-to-int",
+            "long-to-long",
+            "float-to-float",
+            "double-to-double",
+            "double-to-long",
+            "long-to-double",
         }
     )
 )
@@ -956,9 +956,7 @@ class TestPyEval:
     # Tests for type-casting
     def test_type_casting_without_wide_type(self, pyeval, cast_kind):
         instruction = [cast_kind, "v1", "v5"]
-
-        index = cast_kind.index("-") + 1
-        postfix = cast_kind[index:]
+        prefix, postfix = cast_kind.split("-to-")
 
         pyeval.eval[instruction[0]](instruction)
 
@@ -970,9 +968,7 @@ class TestPyEval:
         self, pyeval, cast_wide_to_simple_kind
     ):
         instruction = [cast_wide_to_simple_kind, "v1", "v5"]
-
-        index = cast_wide_to_simple_kind.index("-") + 1
-        postfix = cast_wide_to_simple_kind[index:]
+        prefix, postfix = cast_wide_to_simple_kind.split("-to-")
 
         pyeval.eval[instruction[0]](instruction)
 
@@ -985,9 +981,7 @@ class TestPyEval:
         self, pyeval, cast_simple_to_wide_kind
     ):
         instruction = [cast_simple_to_wide_kind, "v1", "v5"]
-
-        index = cast_simple_to_wide_kind.index("-") + 1
-        postfix = cast_simple_to_wide_kind[index:]
+        prefix, postfix = cast_simple_to_wide_kind.split("-to-")
 
         pyeval.eval[instruction[0]](instruction)
 
