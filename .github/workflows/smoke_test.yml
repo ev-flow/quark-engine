@@ -119,9 +119,9 @@ jobs:
 
     - name: Check 14d9f1a92dd984d6040cc41ed06e273e.apk Result
       shell: bash
-      # This sample should have 41 behaviors with 100% confidence
+      # This sample should have 42 behaviors with 100% confidence
       run: |
-        if [ "${{ env.e273e_RESULT }}" == "41" ]; then
+        if [ "${{ env.e273e_RESULT }}" == "42" ]; then
           exit 0
         else
           exit 1
