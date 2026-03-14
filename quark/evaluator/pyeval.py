@@ -7,6 +7,7 @@
 # http://pallergabor.uw.hu/androidblog/dalvik_opcodes.html
 
 import logging
+from typing import Sequence
 from quark import config
 from quark.core.struct.registerobject import RegisterObject
 from quark.core.struct.tableobject import TableObject
@@ -171,24 +172,21 @@ class PyEval:
             except IndexError:
                 pass
 
-        valueOfRegList = []
-        # query the value from hash table based on register index.
-        for index in regIdxList:
-            if not self.table_obj.getRegValues(index):
-                # Insert a RegisterObject if one is missing.
-                # Therefore, we can trace the usage of this register.
-                self.table_obj.insert(
-                    index, RegisterObject(Primitive("", None))
-                )
-
-            value = self.table_obj.getLatestRegValue(index)
-            valueOfRegList.append(value.value)
+        # Collect RegisterObjects according to register indexes.
+        # Insert a new RegisterObject if one is missing.
+        # Therefore, we can trace the usage of this register.
+        sourceRegisters = (
+            self.table_obj.getOrInsertLatestRegValue(
+                index, self._generateEmptyRegister
+            ) for index in regIdxList
+        )
+        valueOfRegList = [reg.value for reg in sourceRegisters]
 
         # Check whether any argument is missing a value type.
         argIdxWithoutType = [
             idx
             for idx, arg in enumerate(valueOfRegList)
-            if isinstance(arg, Primitive) and arg.value_type == ""
+            if isinstance(arg, Primitive) and arg.isTypeUnknown()
         ]
         if len(argIdxWithoutType) > 0:
             # Set the missing value types based on the method's descriptor.
@@ -200,8 +198,8 @@ class PyEval:
 
             rawArgTypes = targetMethod[
                 targetMethod.find("(") + 1 : targetMethod.find(")")
-            ].split(" ")
-            
+            ].split()
+
             for argType in rawArgTypes:
                 argTypes.append(argType)
                 if argType in ["J", "D"]:
@@ -562,18 +560,47 @@ class PyEval:
             log.exception(f"{e} in MOVE_KIND")
 
     @logger
-    def FILLED_NEW_ARRAY_KIND(self, instruction):
-        value_type = instruction[-1]
+    def FILLED_NEW_ARRAY_KIND(self, instruction: Sequence[str]):
+        """
+        Handles 'filled-new-array' and 'filled-new-array/range' instructions.
 
-        try:
-            self._invoke(instruction[:-1] + [f"new-array(){value_type}"])
-        except IndexError as e:
-            log.exception(f"{e} in MOVE_KIND")
+        It expects the registers for 'filled-new-array/range' to be expanded.
+        For example, an instruction like '"filled-new-array/range" {v1 .. v3}, 
+        [I' implies that the `instruction` list should contain the individual
+        registers (e.g., ['filled-new-array/range', 'v1', 'v2', 'v3', '[I']).
+        """
+        mnemonic, *regList, arrayType = instruction
+        regIdxList = [int(r[1:]) for r in regList]
+        elementType = arrayType[1:]
+
+        # Collect RegisterObjects according to register indexes.
+        # Insert a new RegisterObject if one is missing.
+        # Therefore, we can trace the usage of this register.
+        sourceRegisters = (
+            self.table_obj.getOrInsertLatestRegValue(
+                index, self._generateEmptyRegister
+            ) for index in regIdxList
+        )
+        valueOfRegList = [reg.value for reg in sourceRegisters]
+
+        # Check whether any register is missing a value type.
+        for value in valueOfRegList:
+            if isinstance(value, Primitive) and value.isTypeUnknown():
+                value.value_type = elementType
+
+        argStr = (f"{{src{idx}}}" for idx in range(len(regIdxList)))
+        newValue = BytecodeOps(
+            strFormat=f"{mnemonic}({','.join(argStr)}){{data}}",
+            operands=tuple(valueOfRegList),
+            data=arrayType
+        )
+
+        self.ret_stack.append(newValue)
+        self.ret_type = arrayType
 
     @logger
     def AGET_WIDE_KIND(self, instruction):
         array_reg_index = int(instruction[2][1:])
-
 
         try:
             array_reg = self.table_obj.getLatestRegValue(array_reg_index)
@@ -850,6 +877,10 @@ class PyEval:
         )
 
         self.table_obj.insert(destination, new_register)
+
+    @staticmethod
+    def _generateEmptyRegister() -> RegisterObject:
+        return RegisterObject(Primitive("", None))
 
     @staticmethod
     def get_method_pattern(

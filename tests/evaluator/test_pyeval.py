@@ -71,6 +71,7 @@ def pyeval(apkinfo):
     v9_mock_variable_obj.called_by_func.append(
         MethodCall("java.io.file.close", tuple())
     )
+    v10_mock_variable_obj = RegisterObject(Primitive("data", None), None)
 
     pyeval.table_obj.insert(4, v4_mock_variable_obj)
     pyeval.table_obj.insert(5, v5_mock_variable_obj)
@@ -78,6 +79,7 @@ def pyeval(apkinfo):
     pyeval.table_obj.insert(7, v7_mock_variable_obj)
     pyeval.table_obj.insert(8, v8_mock_variable_obj)
     pyeval.table_obj.insert(9, v9_mock_variable_obj)
+    pyeval.table_obj.insert(10, v10_mock_variable_obj)
 
     yield pyeval
 
@@ -838,25 +840,40 @@ class TestPyEval:
             == "new-array()[(java.lang.String.toString(some_number))"
         )
 
-    def test_filled_array_kind_with_class_type(
-        self, pyeval, filled_array_kind
-    ):
-        instruction = [filled_array_kind, "v1", "[type_idx"]
+    def test_filled_array_kind_with_class_type(self, pyeval, filled_array_kind):
+        instruction = [filled_array_kind, "v4", "v9", "[Ljava/lang/Object;"]
 
         pyeval.eval[instruction[0]](instruction)
 
-        assert pyeval.ret_stack[0].resolve() == "new-array()[type_idx()"
-        assert pyeval.ret_type == "[type_idx"
+        assert pyeval.ret_stack[0].resolve() == (
+            f"{filled_array_kind}(Lcom/google/progress/SMSHelper;"
+            ",some_string)[Ljava/lang/Object;"
+        )
+        assert pyeval.ret_type == "[Ljava/lang/Object;"
 
     def test_filled_array_kind_with_primitive_type(
         self, pyeval, filled_array_kind
     ):
-        instruction = [filled_array_kind, "v1", "[I"]
+        instruction = [filled_array_kind, "v7", "[F"]
 
         pyeval.eval[instruction[0]](instruction)
 
-        assert pyeval.ret_stack[0].resolve() == "new-array()[I()"
-        assert pyeval.ret_type == "[I"
+        assert (
+            pyeval.ret_stack[0].resolve() == f"{filled_array_kind}(a_float)[F"
+        )
+        assert pyeval.ret_type == "[F"
+
+    def test_filled_array_kind_infers_primitive_types(
+        self, pyeval, filled_array_kind
+    ):
+        instruction = [filled_array_kind, "v10", "[Ljava/lang/String;"]
+
+        pyeval.eval[instruction[0]](instruction)
+
+        assert (
+            pyeval.table_obj.getLatestRegValue(10).value.value_type
+            == "Ljava/lang/String;"
+        )
 
     # Tests for aget-kind
     def test_aget_kind(self, pyeval, aget_kind):
