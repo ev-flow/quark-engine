@@ -100,10 +100,8 @@ jobs:
     - name: Check Ahmyth Result
       shell: bash
       # This sample should have 39 behaviors with 100% confidence.
-      # Rule 00015 is currently detected with 80% confidence because PyEval fails
-      # to track byte arrays (issue #889: https://github.com/ev-flow/quark-engine/issues/889).
       run: |
-        if [ "${{ env.Ahmyth_RESULT }}" == "38" ]; then
+        if [ "${{ env.Ahmyth_RESULT }}" == "39" ]; then
           exit 0
         else
           exit 1
