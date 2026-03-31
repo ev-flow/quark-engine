@@ -35,6 +35,7 @@
 ## Malware Family Analysis Report Showcase
 
 <table>
+
   <tr>
     <td><img src="https://github.com/user-attachments/assets/e8f150e8-a27f-4d0f-b3f0-346714a4cdc4" width="310"></td>
     <td><img src="https://github.com/user-attachments/assets/1a209c41-7f14-4a71-957a-637148e8a5ec" width="310"></td>
@@ -44,6 +45,10 @@
     <td><img src="https://github.com/user-attachments/assets/ea66a178-0eb1-4832-9b3f-745b973639aa" width="310"></td>
     <td><img src="https://github.com/user-attachments/assets/342a4e3f-33bd-4ff4-92ed-7869356ee1c7" width="310"></td>
     <td><img src="https://github.com/user-attachments/assets/a95e99b1-b7aa-4672-89be-cd2f6bc9e3cd" width="310"></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/311fbc66-0e41-47f0-a3e7-7601e074050f" width="310"></td>
+    <td><img src="https://github.com/user-attachments/assets/0b79b59f-7f76-40e1-8891-78714c06cffb" width="310"></td>
   </tr>
 </table>
 
@@ -56,7 +61,8 @@
 | DawDropper  | Dropper that installs banking trojans for financial theft. | 1. Download APKs from remote servers.<br>2. Install additional APKs. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-dawdropper) |
 | SLocker     | Android ransomware locking/encrypting devices.     | 1. Lock the device with an overlay screen. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-slocker) |
 | PhantomCard | NFC relay–based financial fraud.                   | 1. Communicate with C2 servers.<br>2. Read the payment data of NFC cards.<br>3. Captures PINs of NFC cards through deceptive screens.  | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-phantomcard) |
-
+| ToxicPanda  | Banking trojan enabling on-device fraud.     | 1. Abuse Accessibility.<br>2. Remote device control.<br>3. Intercept OTP. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-toxicpanda) |
+| Hydra       | Banking trojan using overlay attacks.        | 1. Overlay credential theft.<br>2. Accessibility abuse.<br>3. Steal OTP/cookies. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-hydra) |
 
 
 ## Quick Start
