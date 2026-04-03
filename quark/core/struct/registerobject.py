@@ -119,7 +119,7 @@ class RegisterObject:
         False otherwise.
         :rtype: bool
         """
-        return self.current_type is None or self.current_type.startswith("L")
+        return self.current_type is None or self.current_type.startswith(("L", "["))
 
     def iterateInvolvedCalls(self) -> Generator[MethodCall, None, None]:
         """

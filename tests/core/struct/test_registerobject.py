@@ -43,10 +43,18 @@ class TestRegisterObject:
     def test_bears_object(self):
         reg_with_object = RegisterObject("value", value_type="Ljava/lang/String;")
         reg_with_primitive = RegisterObject("value", value_type="I")
+        reg_with_array = RegisterObject("value", value_type="[B")
+        reg_with_object_array = RegisterObject(
+            "value", value_type="[Ljava/lang/String;"
+        )
+        reg_with_multi_dim_array = RegisterObject("value", value_type="[[B")
         reg_with_none = RegisterObject("value", value_type=None)
 
         assert reg_with_object.bears_object() is True
         assert reg_with_primitive.bears_object() is False
+        assert reg_with_array.bears_object() is True
+        assert reg_with_object_array.bears_object() is True
+        assert reg_with_multi_dim_array.bears_object() is True
         assert reg_with_none.bears_object() is True
 
     def test_iterate_involved_calls_returns_nested_calls(self):
