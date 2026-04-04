@@ -1,22 +1,21 @@
 quark-engine (26.4.1-0kali1) kali-dev; urgency=medium
 
-  * Document Enhancement
+  * Document Enhancements
 
-    - Add an analysis report for the Hydra malware family. (#892)
+    - Add analysis report for Hydra malware family. (#892)
+    - Add analysis report for SharkBot malware family. (#900)
+
+  * Bug Fixes
+
+    - Fix issues where `type-casting` and `invoke-polymorphic` instructions were skipped during analysis. Thanks to @dolamroth. (#872 and #874)
+    - Fix incorrect type hints in helper functions. Thanks to @dolamroth. (#885)
+    - Fix incomplete tracking of registers holding array objects. (#890)
 
   * Dependency Update
 
-    - Bump pip, flask, and werkzeug to newer versions. (#862, #865, and #883)
+    - Bump **Flask** from 2.2.5 to 3.1.3. (#865)
 
-  * Bug Fix
-
-    - Fix instruction handling and typing issues in PyEval and Androguard bytecode parsing. (#872, #874, and #885; fixes #871)
-
-  * CI/Workflow Enhancement
-
-    - Add an AI issue solver workflow and update smoke test CI behavior counts. (#875 and #888)
-
- --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 30 Mar 2026 11:22:53 +0800
+ --  Shaun Dang <pulorsok@gmail.com>  Mon, 30 Mar 2026 11:22:53 +0800
 
 quark-engine (26.3.1-0kali1) kali-dev; urgency=medium
 
