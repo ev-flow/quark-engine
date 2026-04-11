@@ -109,9 +109,9 @@ jobs:
 
     - name: Check 13667fe3b0ad496a0cd157f34b7e0c991d72a4db.apk Result
       shell: bash
-      # This sample should have 19 behaviors with 100% confidence
+      # This sample should have 20 behaviors with 100% confidence
       run: |
-        if [ "${{ env.a4db_RESULT }}" == "19" ]; then
+        if [ "${{ env.a4db_RESULT }}" == "20" ]; then
           exit 0
         else
           exit 1
