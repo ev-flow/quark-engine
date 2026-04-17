@@ -51,7 +51,13 @@
     <td><img src="https://github.com/user-attachments/assets/0b79b59f-7f76-40e1-8891-78714c06cffb" width="310"></td>
     <td><img src="https://github.com/user-attachments/assets/3b906cc0-d956-4ab2-851d-5da2767926e8" width="310"></td>
   </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/1523eeb8-cfca-4c5a-b63d-38887312b673" width="310"></td>
+    <td><img src="https://github.com/user-attachments/assets/60b5afac-3244-480e-9aad-0337183bc6a0" width="310"></td>
+  </tr>
 </table>
+
+
 
 | Family      | Summary                                            | Signature Behaviors                    | Report |
 |-------------|----------------------------------------------------|--------------------------|--------|
@@ -64,6 +70,8 @@
 | ToxicPanda  | Banking trojan enabling on-device fraud.     | 1. Abuse Accessibility.<br>2. Remote device control.<br>3. Intercept OTP. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-toxicpanda) |
 | Hydra       | Banking trojan using overlay attacks.        | 1. Overlay credential theft.<br>2. Accessibility abuse.<br>3. Steal OTP/cookies. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-hydra) |
 | SharkBot    | Banking trojan targeting financial credentials and transactions. | 1. Abuse Accessibility services.<br>2. Perform overlay attacks to steal credentials.<br>3. Intercept SMS messages (OTP). | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-sharkbot) |
+| Antidot     | Banking trojan disguised as legitimate updates for financial data theft. | 1. Intercept SMS messages (OTP).<br>2. Log user input (keylogging).<br>3. Enable remote control via C2. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-antidot) |
+| Arsink      | Banking trojan focusing on credential and financial data exfiltration. | 1. Steal sensitive data from device.<br>2. Intercept SMS messages (OTP). | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-arsink) |
 
 ## Quick Start
 
