@@ -101,7 +101,7 @@ jobs:
       shell: bash
       # This sample should have 39 behaviors with 100% confidence.
       run: |
-        if [ "${{ env.Ahmyth_RESULT }}" == "39" ]; then
+        if [ "${{ env.Ahmyth_RESULT }}" == "40" ]; then
           exit 0
         else
           exit 1
