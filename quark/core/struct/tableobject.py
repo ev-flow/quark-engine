@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for copying permission.
 
 from collections import defaultdict
+from typing import Callable
 from quark.core.struct.registerobject import RegisterObject
 
 
@@ -52,6 +53,24 @@ class TableObject:
         :return: RegisterObject
         """
         return self.hash_table[index][-1]
+
+    def getOrInsertLatestRegValue(
+        self,
+        index: int,
+        defaultRegisterGenerator: Callable[[], RegisterObject]
+    ) -> RegisterObject:
+        """
+        Get the latest RegisterObject for the given index or insert a new one if it is empty.
+
+        :param index: the index to get the corresponding RegisterObject
+        :param defaultRegisterGenerator: the function that generates a RegisterObject
+        :return: the latest RegisterObject
+        """
+        targetRegisterList = self.hash_table[index]
+        if not targetRegisterList:
+            targetRegisterList.append(defaultRegisterGenerator())
+
+        return targetRegisterList[-1]
 
 
 if __name__ == "__main__":
