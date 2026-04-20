@@ -54,6 +54,7 @@
   <tr>
     <td><img src="https://github.com/user-attachments/assets/1523eeb8-cfca-4c5a-b63d-38887312b673" width="310"></td>
     <td><img src="https://github.com/user-attachments/assets/60b5afac-3244-480e-9aad-0337183bc6a0" width="310"></td>
+    <td><img src="https://github.com/user-attachments/assets/ea8d1e15-234b-4197-8d3e-1984fcacb6c7" width="310"></td>
   </tr>
 </table>
 
@@ -72,6 +73,7 @@
 | SharkBot    | Banking trojan targeting financial credentials and transactions. | 1. Abuse Accessibility services.<br>2. Perform overlay attacks to steal credentials.<br>3. Intercept SMS messages (OTP). | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-sharkbot) |
 | Antidot     | Banking trojan disguised as legitimate updates for financial data theft. | 1. Intercept SMS messages (OTP).<br>2. Log user input (keylogging).<br>3. Enable remote control via C2. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-antidot) |
 | Arsink      | Banking trojan focusing on credential and financial data exfiltration. | 1. Steal sensitive data from device.<br>2. Intercept SMS messages (OTP). | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-arsink) |
+| TrickMo     | Banking trojan using overlay attacks and accessibility abuse for credential theft. | 1. Overlay attacks to steal banking credentials.<br>2. Intercept SMS for 2FA bypass.<br>3. Screen recording and accessibility abuse.<br>4. Dynamic payload loading via reflection. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-trickmo) |
 
 ## Quick Start
 
