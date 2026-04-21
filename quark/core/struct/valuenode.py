@@ -72,6 +72,9 @@ class Primitive(ValueNode):
             if evaluateArgs
             else str(self.value)
         )
+        
+    def isTypeUnknown(self) -> bool:
+        return self.value_type is None or self.value_type == ""
 
 
 @dataclass(slots=True, eq=False)
