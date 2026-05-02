@@ -74,6 +74,7 @@
 | Antidot     | Banking trojan disguised as legitimate updates for financial data theft. | 1. Intercept SMS messages (OTP).<br>2. Log user input (keylogging).<br>3. Enable remote control via C2. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-antidot) |
 | Arsink      | Banking trojan focusing on credential and financial data exfiltration. | 1. Steal sensitive data from device.<br>2. Intercept SMS messages (OTP). | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-arsink) |
 | TrickMo     | Banking trojan using overlay attacks and accessibility abuse for credential theft. | 1. Overlay attacks to steal banking credentials.<br>2. Intercept SMS for 2FA bypass.<br>3. Screen recording and accessibility abuse.<br>4. Dynamic payload loading via reflection. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-trickmo) |
+| Anubis      | Banking trojan with RAT capabilities.              | 1. Overlay credential theft.<br>2. Keylogging.<br>3. Intercept SMS (OTP).<br>4. Remote control via C2. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-anubis) |
 
 ## Quick Start
 
