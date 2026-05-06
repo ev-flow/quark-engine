@@ -8,15 +8,7 @@ quark-engine (26.5.1-0kali1) kali-dev; urgency=medium
 
     - Separate `filled-new-array` parsing from invoke-kind handling to avoid incorrect bytecode classification. (#867 and #886)
 
-  * Test Improvement
-
-    - Update smoke test expectations for behavior counts and Ahmyth detection results. (#905 and #908)
-
-  * Dependency Update
-
-    - Bump **black** from 26.1a1 to 26.3.1 and **pygments** from 2.19.2 to 2.20.0. (#884 and #897)
-
- --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 04 May 2026 11:51:26 +0800
+ --  Shaun Dang <pulorsok@gmail.com>  Mon, 04 May 2026 11:51:26 +0800
 
 quark-engine (26.4.1-0kali1) kali-dev; urgency=medium
 
