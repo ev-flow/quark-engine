@@ -1,3 +1,15 @@
+quark-engine (26.6.1-0kali1) kali-dev; urgency=medium
+
+  * Rule Enhancement
+
+    - Add new Quark rules for the BRATA, TangleBot, and Godfather malware families. (#917, #916, and #915)
+
+  * Dependency Update
+
+    - Bump lxml from 6.0.2 to 6.1.0, pip from 26.0 to 26.1, and urllib3 from 2.6.3 to 2.7.0. (#910, #914, and #918)
+
+ --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 01 Jun 2026 12:57:14 +0800
+
 quark-engine (26.5.1-0kali1) kali-dev; urgency=medium
 
   * Rule Enhancement
