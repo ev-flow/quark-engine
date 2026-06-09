@@ -63,6 +63,7 @@
   </tr>
   <tr>
     <td><img src="https://github.com/user-attachments/assets/e1c2b16a-819e-4399-8b9e-79899ee2d1b8" width="310"></td>
+    <td><img src="https://github.com/user-attachments/assets/03b5a2e2-7dda-4fb7-8462-d2a83bf38bbb" width="310"></td>
   </tr>
 </table>
 
@@ -85,6 +86,7 @@
 | GodFather  | Banking trojan targeting financial credentials through overlay and accessibility abuse. | 1. Perform overlay attacks to steal credentials.<br>2. Abuse Accessibility services.<br>3. Intercept SMS messages (OTP).<br>4. Steal banking credentials and sensitive data. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-godfather) |
 | TangleBot   | SMS-based Android malware stealing personal and financial data. | 1. Spread through SMS phishing links.<br>2. Control device interactions and overlay screens.<br>3. Access SMS, contacts, call logs, camera, and microphone.<br>4. Steal account and financial information. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-tanglebot) |
 | BRATA       | Banking trojan with remote control and anti-analysis capabilities. | 1. Perform overlay attacks to steal banking credentials.<br>2. Abuse Accessibility services for device control.<br>3. Intercept SMS messages (OTP).<br>4. Execute factory reset or device wipe commands. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-brata) |
+| Cerberus    | Banking trojan targeting financial credentials through overlay and device control. | 1. Perform overlay attacks to steal credentials.<br>2. Abuse Accessibility services.<br>3. Log user input (keylogging).<br>4. Enable remote control via C2. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-cerberus) |
 
 ## Quick Start
 
