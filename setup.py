@@ -21,7 +21,7 @@ required_requirements = [
 ]
 
 quarkAgentRequirements = [
-    "langchain==0.2.11",
+    "langchain==0.3.30",
     "langchain-core==0.2.23",
     "langchain-openai==0.1.17",
     "flask==3.1.3",
