@@ -134,7 +134,7 @@ logo()
     "core_library",
     help="Specify the core library used to analyze an APK",
     type=click.Choice(
-        ("androguard", "rizin", "radare2", "shuriken"),
+        ("androguard", "rizin", "radare2", "shuriken", "dextrace"),
         case_sensitive=False
     ),
     required=False,
