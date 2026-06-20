@@ -16,16 +16,12 @@ Dependabot spam near-identical PRs at `ev-flow/quark-engine` (one per dep bump).
 
 Repo declare deps two places, drift apart:
 
-- `setup.py` — actually consumed by `pip install .` in `pytest.yml`.
+- `setup.py` — consumed by `pip install ".[QuarkAgent]"` in `pytest.yml`.
 - `Pipfile` / `Pipfile.lock` — **no workflow consume this.** Nothing run `pipenv install`.
 
-Plus `pytest.yml` hardcode some versions outright, e.g. (as of writing):
+History lesson (fixed, but why `check_workflow_pin.sh` still exists): `pytest.yml` used to have a standalone line hardcoding `langchain==0.2.11 langchain-core==0.2.23 langchain-openai==0.1.17`, totally ignoring `setup.py`. Dependabot bump `langchain-core` in `setup.py` → still all-green CI, cuz CI quietly kept testing the old hardcoded version, never the bump. Fixed by installing `.[QuarkAgent]` extras instead (commit `9d119c4`) — but **any** workflow step could grow a new hardcoded pin like this again for some other package, so still check for it, don't assume it's gone forever.
 
-```
-python -m pip install langchain==0.2.11 langchain-core==0.2.23 langchain-openai==0.1.17 --upgrade
-```
-
-Line ignore `setup.py` totally. Dependabot PR bump `langchain-core` in `setup.py` → still all-green CI — CI quietly kept testing old pinned version. Other way: unpinned transitive deps (e.g. `idna`, `requests`) often float to latest at install regardless of which file dependabot touch, and float version frequent already at-or-above target — legit pass, not coincidence to suspect.
+Separate, still-live gotcha: unpinned transitive deps (e.g. `idna`, `requests`) often float to latest at install regardless of which file dependabot touch, and float version frequent already at-or-above target — legit pass, not coincidence to suspect.
 
 Lesson: **don't guess from which file PR changed.** Always check direct (a) what version actually install in CI run, (b) does some workflow step hardcode this exact package to older version. Two simple greps — trust over filename.
 
