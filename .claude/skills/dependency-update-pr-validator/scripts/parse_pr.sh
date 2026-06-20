@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Parse a dependabot dependency-update PR: package name, before/target
+# Parse a dependabot dependency-update PR: package name, current/target
 # version, and which files it touched. Which file changed (setup.py vs
 # Pipfile/Pipfile.lock) does NOT tell you whether CI actually installs the
 # target version — some setup.py-declared packages are overridden by a
@@ -30,11 +30,11 @@ with open(sys.argv[1]) as f:
 m = re.search(r"Bumps \[([^\]]+)\].*?\bfrom\s+(\S+)\s+to\s+(\S+)\.", body, re.DOTALL)
 if m:
     print(f"package={m.group(1)}")
-    print(f"before_version={m.group(2)}")
+    print(f"current_version={m.group(2)}")
     print(f"target_version={m.group(3)}")
 else:
     print("package=UNKNOWN")
-    print("before_version=UNKNOWN")
+    print("current_version=UNKNOWN")
     print("target_version=UNKNOWN")
 PYEOF
 

@@ -6,11 +6,11 @@ Based on PR #923 (`ev-flow/quark-engine`), bumping `idna`.
 | Field | Value |
 |---|---|
 | Package | idna |
-| Before version | 3.11 |
+| Current version | 3.11 |
 | Target version | 3.15 |
 | CI checks | ✅ All passed (push is skipping, not a failure) |
 | Actual installed version | 3.15 |
-| Is covered (actual ≥ target) | ✅ Yes |
+| Actual ≥ Target | ✅ Yes |
 ```
 
 CI ran the full test suite against idna 3.15 (confirmed via the

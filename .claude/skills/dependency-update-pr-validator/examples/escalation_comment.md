@@ -8,11 +8,11 @@ CI was green, but the green result is misleading.
 | Field | Value |
 |---|---|
 | Package | langchain-core |
-| Before version | 0.2.23 |
+| Current version | 0.2.23 |
 | Target version | 1.3.3 |
 | CI checks | ✅ All passed (push is skipping, not a failure) |
 | Actual installed version | 0.2.23 (unchanged!) |
-| Is covered (actual ≥ target) | ❌ No |
+| Actual ≥ Target | ❌ No |
 ```
 
 `pytest.yml` line 53 hardcodes
@@ -49,11 +49,11 @@ Would you like me to post this as a comment on PR #922?
 | Field | Value |
 |---|---|
 | Package | langchain |
-| Before version | 0.2.11 |
+| Current version | 0.2.11 |
 | Target version | 0.3.30 |
 | CI checks | ❌ 1 failing (`build`, pytest.yml) |
 | Actual installed version | Not verified (CI failed before this check) |
-| Is covered (actual ≥ target) | — Not verified |
+| Actual ≥ Target | — Not verified |
 ```
 
 All 461 test errors trace back to one fixture failing to download a valid
@@ -83,11 +83,11 @@ Would you like me to post this as a comment on PR #921?
 | Field | Value |
 |---|---|
 | Package | pytest |
-| Before version | 9.0.2 |
+| Current version | 9.0.2 |
 | Target version | 9.0.3 |
 | CI checks | ❌ 9 failing (`smoke_test.yml`, all OS/Python matrix entries) |
 | Actual installed version | Not verified (CI failed before this check) |
-| Is covered (actual ≥ target) | — Not verified |
+| Actual ≥ Target | — Not verified |
 ```
 
 This PR only changes `Pipfile.lock`, which no workflow in this repo
