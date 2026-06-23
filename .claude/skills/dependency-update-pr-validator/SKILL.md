@@ -70,7 +70,7 @@ Read failure, classify "look like real regression from bump" vs "look unrelated"
 bash .claude/skills/dependency-update-pr-validator/scripts/check_actual_version.sh <repo> <head_ref> <package>
 ```
 
-Find `pytest.yml` ("build") run for PR's branch, grep log for package's `Successfully installed` line — one place reflect what pip genuinely resolve+test, regardless which declaration file PR touch.
+Find `pytest.yml` ("build") run for PR's branch, grep log for package's `Successfully installed` line — one place reflect what pip genuinely resolve+test, regardless which declaration file PR touch. Script also emit `proof_url` (link to the `build` job page) — link this in table row as "Found in CI log", not just bare version, so human verify same place without re-running anything.
 
 Then check workflow hardcode package to stale version (explains "No" result, when exist):
 
@@ -95,7 +95,7 @@ Always finish **one markdown table English**, exact field order, regardless whic
 | Current version | <current> |
 | Target version | <target> |
 | CI checks | <✅ All passed / ❌ N failing, with a short reason> |
-| Actual installed version | <version, or "Not verified (CI failed first)"> |
+| Actual installed version | <version ([Found in CI log](proof_url)) using `proof_url` from `check_actual_version.sh`; if no `proof_url` line, plain version; if CI failed first, "Not verified (CI failed first)"> |
 | Actual ≥ Target | <✅ Yes / ❌ No / — Not verified> |
 ```
 
@@ -113,7 +113,7 @@ Present draft to user. Don't post anywhere.
 | `scripts/parse_pr.sh <repo> <pr>` | Just dependabot body/diff parse part step 1 |
 | `scripts/check_ci.sh <repo> <pr>` | Just CI-checks part step 1 |
 | `scripts/check_pip_resolution.sh <repo> <head_ref> <package>` | Step 2 (only if `setup.py` changed, regardless CI outcome): bumped pin pip-installable alongside sibling pins same requirements list? |
-| `scripts/check_actual_version.sh <repo> <head_ref> <package>` | Step 4: actual installed version from pytest.yml build log |
+| `scripts/check_actual_version.sh <repo> <head_ref> <package>` | Step 4: actual installed version from pytest.yml build log, plus `proof_url` link to that job |
 | `scripts/check_workflow_pin.sh <package>` | Step 4: workflow hardcode package to older version? |
 | `scripts/compare_versions.sh <actual> <target>` | Step 4: is_covered (PEP 440 version comparison) |
 

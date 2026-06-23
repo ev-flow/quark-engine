@@ -26,6 +26,11 @@ CONCLUSION=$(echo "$RUN_ID" | python3 -c 'import json,sys; print(json.load(sys.s
 echo "run_id=$DB_ID"
 echo "run_conclusion=$CONCLUSION"
 
+JOB_ID=$(gh run view "$DB_ID" --repo "$REPO" --json jobs -q '.jobs[] | select(.name=="build") | .databaseId' | head -1)
+if [ -n "$JOB_ID" ]; then
+  echo "proof_url=https://github.com/${REPO}/actions/runs/${DB_ID}/job/${JOB_ID}"
+fi
+
 if [ "$CONCLUSION" != "success" ]; then
   echo "actual_version=UNKNOWN"
   echo "reason=pytest.yml run did not succeed, install log is not a reliable signal"
