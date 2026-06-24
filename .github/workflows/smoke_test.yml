@@ -42,16 +42,6 @@ jobs:
         # Install click <= 8.1.7 for CLI supports
         python -m pip install "click<=8.1.7"
    
-    - name: Install Shuriken-Analyzer for Linux
-      run: |
-        pip install git+https://github.com/Fare9/Shuriken-Analyzer.git@main#subdirectory=shuriken/bindings/Python/
-      if: matrix.os == 'ubuntu-latest'
-
-    - name: Install Shuriken-Analyzer for MacOS
-      run: |
-        pip install git+https://github.com/Fare9/Shuriken-Analyzer.git@main#subdirectory=shuriken/bindings/Python/
-      if: matrix.os == 'macos-latest'
-
     - name: Install MacPorts
       uses: melusina-org/setup-macports@v1
       if: matrix.os == 'macos-latest'

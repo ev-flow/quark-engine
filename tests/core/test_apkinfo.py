@@ -12,6 +12,13 @@ from quark.core.shurikenapkinfo import ShurikenImp
 from quark.core.struct.bytecodeobject import BytecodeObject
 from quark.core.struct.methodobject import MethodObject
 
+try:
+    import shuriken  # noqa: F401
+
+    _HAS_SHURIKEN = True
+except ModuleNotFoundError:
+    _HAS_SHURIKEN = False
+
 
 @pytest.fixture(scope="session")
 def dex_file(SAMPLE_PATH_13667):
@@ -70,6 +77,9 @@ def __generateTestIDs(testInput: Tuple[BaseApkinfo, Literal["DEX", "APK"]]):
 def apkinfo(request, SAMPLE_PATH_13667, dex_file):
     apkinfoClass, fileType = request.param
 
+    if apkinfoClass is ShurikenImp and not _HAS_SHURIKEN:
+        pytest.skip("Shuriken-Analyzer is not installed")
+
     fileToBeAnalyzed = SAMPLE_PATH_13667
     if fileType == "DEX":
         fileToBeAnalyzed = dex_file
@@ -115,6 +125,9 @@ def apkinfo_with_R2Imp_only(request, SAMPLE_PATH_13667, dex_file):
 )
 def apkinfoPivaa(request, SAMPLE_PATH_pivaa, dex_file_pivaa):
     apkinfoClass, fileType = request.param
+
+    if apkinfoClass is ShurikenImp and not _HAS_SHURIKEN:
+        pytest.skip("Shuriken-Analyzer is not installed")
 
     fileToBeAnalyzed = SAMPLE_PATH_pivaa
     if fileType == "DEX":
