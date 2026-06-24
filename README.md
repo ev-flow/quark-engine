@@ -66,6 +66,9 @@
     <td><img src="https://github.com/user-attachments/assets/03b5a2e2-7dda-4fb7-8462-d2a83bf38bbb" width="310"></td>
     <td><img src="https://github.com/user-attachments/assets/aa51bd06-de3e-4bcc-95cd-22ecc8b27c01" width="310"></td>
   </tr>
+  <tr>
+      <td><img src="https://github.com/user-attachments/assets/986d23eb-48de-459f-9714-f4685fd3e696" width="310"></td>
+  </tr>
 </table>
 
 
@@ -89,6 +92,7 @@
 | BRATA       | Banking trojan with remote control and anti-analysis capabilities. | 1. Perform overlay attacks to steal banking credentials.<br>2. Abuse Accessibility services for device control.<br>3. Intercept SMS messages (OTP).<br>4. Execute factory reset or device wipe commands. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-brata) |
 | Cerberus    | Banking trojan targeting financial credentials through overlay and device control. | 1. Perform overlay attacks to steal credentials.<br>2. Abuse Accessibility services.<br>3. Log user input (keylogging).<br>4. Enable remote control via C2. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-cerberus) |
 | SuperCardX  | NFC relay malware enabling contactless payment fraud. | 1. Read NFC payment card data.<br>2. Relay NFC transactions to attacker-controlled devices.<br>3. Communicate with C2 servers.<br>4. Facilitate unauthorized contactless payments. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-supercardx) |
+| NGate       | NFC-based malware enabling relay attacks and payment fraud. | 1. Read NFC payment card data.<br>2. Relay NFC communications to attacker-controlled devices.<br>3. Communicate with C2 servers.<br>4. Facilitate unauthorized contactless payments. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-ngate) |
 
 ## Quick Start
 
