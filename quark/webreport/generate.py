@@ -196,10 +196,11 @@ class ReportGenerator:
             description = crime["crime"]
             confidence = crime["confidence"]
             rule_number = crime["rule"].split('.')[0]
+            crime_text = str(crime).replace("'", '\\"')
             contentHTML += f"""
                 <tr>
                     <td><p class="fw-normal mb-1">{rule_number}</p></td>
-                    <td><p class="fw-normal mb-1">{description}</p></td>
+                    <td onclick='showModal("{crime_text}")'><p class="fw-normal mb-1">{description}</p></td>
                     <td>
                         <span class="badge {confidence_badge[confidence]}">
                             {confidence}
