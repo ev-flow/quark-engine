@@ -56,3 +56,21 @@ class TestForensic:
         result = [str(x) for x in forensic.get_android_api()]
         assert any("getCellLocation" in meth for meth in result)
         assert any("sendTextMessage" in meth for meth in result)
+
+    def test_get_certificate(self, forensic):
+        certificates = forensic.get_certificate()
+
+        assert len(certificates) == 1
+
+        cert = certificates[0]
+        assert cert["subject"] == (
+            "Common Name: Android Debug, Organization: Android, Country: US"
+        )
+        assert cert["issuer"] == (
+            "Common Name: Android Debug, Organization: Android, Country: US"
+        )
+        assert cert["sha256"] == (
+            "E2 19 39 06 1B 8B 26 C8 08 B9 4C 47 4F ED C3 80 "
+            "52 B6 3E 66 07 AF 9C 7C 37 20 38 74 AF E5 E5 70"
+        )
+        assert cert["signature_algorithm"] == "rsassa_pkcs1v15"

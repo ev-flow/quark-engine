@@ -98,6 +98,46 @@ class Forensic:
 
         return self.apk.android_apis
 
+    def get_certificate(self):
+        """
+        Return the signing certificate(s) of the APK.
+
+        :return: a list of dicts, each describing one signing certificate
+            (subject, issuer, serial number, sha1/sha256 fingerprint,
+            validity period and signature algorithm). Returns an empty list
+            when the sample is unsigned or carries no APK-level certificate
+            (e.g. a bare DEX input or the rizin backend).
+        """
+
+        androguard_apk = getattr(self.apk, "apk", None)
+
+        if androguard_apk is None or not hasattr(
+            androguard_apk, "get_certificates"
+        ):
+            return []
+
+        if not androguard_apk.is_signed():
+            return []
+
+        certificates = []
+        for cert in androguard_apk.get_certificates():
+            validity = cert["tbs_certificate"]["validity"]
+
+            certificates.append(
+                {
+                    "subject": cert.subject.human_friendly,
+                    "issuer": cert.issuer.human_friendly,
+                    "serial_number": cert.serial_number,
+                    "sha1": cert.sha1_fingerprint,
+                    "sha256": cert.sha256_fingerprint,
+                    "not_before": str(validity["not_before"].native),
+                    "not_after": str(validity["not_after"].native),
+                    "signature_algorithm": cert.signature_algo,
+                }
+            )
+
+        return certificates
+
 
 if __name__ == "__main__":
     pass
