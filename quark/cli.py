@@ -66,7 +66,7 @@ logo()
     "-r",
     "--rule",
     help="Rules directory",
-    type=click.Path(exists=True, file_okay=True, dir_okay=True),
+    type=click.Path(file_okay=True, dir_okay=True),
     default=f"{config.DIR_PATH}",
     required=False,
     show_default=True,
