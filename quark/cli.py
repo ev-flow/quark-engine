@@ -205,6 +205,12 @@ def entry_point(
 
         rule_path_list = [rule_filter]
     else:
+        if not os.path.exists(rule):
+            raise click.BadParameter(
+                f"Path {rule!r} does not exist.",
+                param_hint="--rule",
+            )
+
         rule_path_list = [
             os.path.join(dir_path, file)
             for dir_path, _, file_list in os.walk(rule)
@@ -461,6 +467,13 @@ def entry_point(
 
     if isinstance(data, ParallelQuark):
         data.close()
+
+
+# Click validates option defaults before the command body can choose a rule source.
+for param in entry_point.params:
+    if param.name == "rule":
+        param.type = click.Path(exists=False, file_okay=True, dir_okay=True)
+        break
 
 
 def update_rule_buffer(rule_buffer_list, rule_path_list):
