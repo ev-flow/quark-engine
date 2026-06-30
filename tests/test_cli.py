@@ -51,3 +51,17 @@ def test_summary_rule_file_does_not_validate_default_rule_path(tmp_path):
 
     assert result.exit_code == 0, result.output
     assert seen_rule_paths == [str(rule_path)]
+
+
+def test_missing_rule_directory_reports_parameter_error(tmp_path):
+    apk_path = tmp_path / "sample.apk"
+    apk_path.write_bytes(b"")
+    missing_rules = tmp_path / "missing-rules"
+
+    result = CliRunner().invoke(
+        cli.entry_point,
+        ["-a", str(apk_path), "-r", str(missing_rules)],
+    )
+
+    assert result.exit_code != 0
+    assert "Rules directory does not exist." in result.output
