@@ -66,7 +66,7 @@ logo()
     "-r",
     "--rule",
     help="Rules directory",
-    type=click.Path(exists=True, file_okay=True, dir_okay=True),
+    type=click.Path(file_okay=True, dir_okay=True),
     default=f"{config.DIR_PATH}",
     required=False,
     show_default=True,
@@ -205,6 +205,12 @@ def entry_point(
 
         rule_path_list = [rule_filter]
     else:
+        if not os.path.exists(rule):
+            raise click.BadParameter(
+                "Rules directory does not exist.",
+                param_hint="--rule",
+            )
+
         rule_path_list = [
             os.path.join(dir_path, file)
             for dir_path, _, file_list in os.walk(rule)
