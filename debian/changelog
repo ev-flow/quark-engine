@@ -12,15 +12,7 @@ quark-engine (26.7.1-0kali1) kali-dev; urgency=medium
 
     - Add Phase 5 dynamic string resolution via DexTrace. (#919)
 
-  * Dependency Update
-
-    - Bump requests from 2.32.5 to 2.33.0, idna from 3.11 to 3.15, and pytest from 9.0.2 to 9.0.3. (#893, #923, and #906)
-
-  * CI Enhancement
-
-    - Drop Shuriken-Analyzer build from CI. (#933)
-
- --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 29 Jun 2026 12:43:29 +0800
+ --  Shaun Dang <pulorsok@gmail.com>  Mon, 29 Jun 2026 12:43:29 +0800
 
 quark-engine (26.6.1-0kali1) kali-dev; urgency=medium
 
