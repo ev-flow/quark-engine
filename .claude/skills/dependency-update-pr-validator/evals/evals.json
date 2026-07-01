@@ -1,0 +1,26 @@
+{
+  "skill_name": "dependency-update-pr-validator",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "clean-ready-to-merge",
+      "prompt": "Please use the dependency-update-pr-validator skill to check ev-flow/quark-engine PR #923 (https://github.com/ev-flow/quark-engine/pull/923) and tell me whether it's ready to merge.",
+      "expected_output": "Package idna, before 3.11, target 3.15, CI all passed, actual installed version 3.15, is_covered Yes, recommendation Ready to merge, ends by asking whether to post a PR comment.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "eval_name": "structural-version-pin",
+      "prompt": "Can you validate this dependabot PR for quark-engine? https://github.com/ev-flow/quark-engine/pull/922 — is it safe to merge?",
+      "expected_output": "Package langchain-core, before 0.2.23, target 1.3.3, CI all passed, actual installed version still 0.2.23, is_covered No, explanation references the hardcoded pin in pytest.yml (line ~53), recommendation Needs human review, ends by asking whether to post a PR comment.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "unrelated-ci-failure",
+      "prompt": "There's a dependabot PR for quark-engine that's failing CI, can you look into why? https://github.com/ev-flow/quark-engine/pull/921",
+      "expected_output": "Package langchain, before 0.2.11, target 0.3.30, CI failing, root cause identified as an unrelated sample-download/zip failure (not the langchain bump), is_covered not verified, recommendation Needs human review (suggest re-run/rebase), ends by asking whether to post a PR comment.",
+      "files": []
+    }
+  ]
+}
