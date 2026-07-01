@@ -2,7 +2,13 @@
 name: dependency-update-pr-validator
 description: Validates dependabot dependency-update PRs against quark-engine's CI and drafts a merge/escalate recommendation. Use when asked to review, validate, or triage a dependabot PR on ev-flow/quark-engine, or when the user references issue 18z/QuarkHQ#3.
 version: 1.0.0
-allowed-tools: bash(gh:*), bash(.claude/skills/dependency-update-pr-validator/scripts/*.sh)
+allowed-tools: >-
+  bash(gh pr view:*),
+  bash(gh pr checks:*),
+  bash(gh run list:*),
+  bash(gh run view:*),
+  bash(gh api:*),
+  bash(.claude/skills/dependency-update-pr-validator/scripts/*.sh)
 ---
 # Dependency Update PR Validator
 
