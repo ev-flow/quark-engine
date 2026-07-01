@@ -48,9 +48,6 @@ jobs:
         cd /opt/radare2-5.9.0
         sudo sys/install.sh --without-pull
         cd -
- 
-        # Install langchain and it's OpenAI integration
-        python -m pip install langchain==0.2.11 langchain-core==0.2.23 langchain-openai==0.1.17 --upgrade
 
         # Install click <= 8.1.7 for CLI supports
         python -m pip install "click<=8.1.7"
@@ -61,7 +58,7 @@ jobs:
         cargo install project_ares@0.10.0
 
     - name: Install Quark-Engine
-      run: pip install .
+      run: pip install ".[QuarkAgent]"
 
     - name: Test with pytest
       run: |

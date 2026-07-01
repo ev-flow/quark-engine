@@ -13,7 +13,7 @@ from quark.utils import colors
 
 # Import the optional dependency, langchain
 try:
-    from langchain.agents import tool
+    from langchain.tools import tool
 except ModuleNotFoundError as e:
     # Create a fake tool in case langchain is not installed.
     def tool(func):
