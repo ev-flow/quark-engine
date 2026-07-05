@@ -66,7 +66,7 @@ logo()
     "-r",
     "--rule",
     help="Rules directory",
-    type=click.Path(exists=True, file_okay=True, dir_okay=True),
+    type=click.Path(exists=False, file_okay=True, dir_okay=True),
     default=f"{config.DIR_PATH}",
     required=False,
     show_default=True,
@@ -207,7 +207,7 @@ def entry_point(
     else:
         if not os.path.exists(rule):
             raise click.BadParameter(
-                f"Path {rule!r} does not exist.",
+                f"Path {rule} does not exist.",
                 param_hint="--rule",
             )
 
@@ -467,13 +467,6 @@ def entry_point(
 
     if isinstance(data, ParallelQuark):
         data.close()
-
-
-# Click validates option defaults before the command body can choose a rule source.
-for param in entry_point.params:
-    if param.name == "rule":
-        param.type = click.Path(exists=False, file_okay=True, dir_okay=True)
-        break
 
 
 def update_rule_buffer(rule_buffer_list, rule_path_list):

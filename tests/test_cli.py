@@ -1,9 +1,20 @@
 import json
 from unittest.mock import patch
 
+import pytest
 from click.testing import CliRunner
 
 from quark.cli import entry_point
+
+
+@pytest.fixture
+def mock_quark():
+    with patch("quark.cli.Quark") as mock:
+        data = mock.return_value
+        data.quark_analysis.score_sum = 0
+        data.quark_analysis.weight_sum = 0
+        data.quark_analysis.summary_report_table = ""
+        yield mock
 
 
 def _rule_option():
@@ -38,7 +49,9 @@ def _write_rule(path):
     )
 
 
-def test_custom_rule_does_not_validate_missing_default_rules(tmp_path, monkeypatch):
+def test_custom_rule_does_not_validate_missing_default_rules(
+    tmp_path, monkeypatch, mock_quark
+):
     missing_default_rules = tmp_path / "missing-rules"
     custom_rule = tmp_path / "custom_rule.json"
     apk = tmp_path / "sample.apk"
@@ -48,16 +61,10 @@ def test_custom_rule_does_not_validate_missing_default_rules(tmp_path, monkeypat
 
     runner = CliRunner()
 
-    with patch("quark.cli.Quark") as mock_quark:
-        data = mock_quark.return_value
-        data.quark_analysis.score_sum = 0
-        data.quark_analysis.weight_sum = 0
-        data.quark_analysis.summary_report_table = ""
-
-        result = runner.invoke(
-            entry_point,
-            ["-a", str(apk), "-s", str(custom_rule)],
-        )
+    result = runner.invoke(
+        entry_point,
+        ["-a", str(apk), "-s", str(custom_rule)],
+    )
 
     assert result.exit_code == 0
     mock_quark.assert_called_once()
@@ -78,7 +85,7 @@ def test_missing_rules_path_fails_when_rules_are_loaded(tmp_path, monkeypatch):
     assert str(missing_rules) in result.output
 
 
-def test_existing_rules_directory_is_loaded(tmp_path, monkeypatch):
+def test_existing_rules_directory_is_loaded(tmp_path, monkeypatch, mock_quark):
     rules_dir = tmp_path / "rules"
     rules_dir.mkdir()
     _write_rule(rules_dir / "custom_rule.json")
@@ -88,13 +95,7 @@ def test_existing_rules_directory_is_loaded(tmp_path, monkeypatch):
 
     runner = CliRunner()
 
-    with patch("quark.cli.Quark") as mock_quark:
-        data = mock_quark.return_value
-        data.quark_analysis.score_sum = 0
-        data.quark_analysis.weight_sum = 0
-        data.quark_analysis.summary_report_table = ""
-
-        result = runner.invoke(entry_point, ["-a", str(apk), "-s"])
+    result = runner.invoke(entry_point, ["-a", str(apk), "-s"])
 
     assert result.exit_code == 0
     mock_quark.assert_called_once()
