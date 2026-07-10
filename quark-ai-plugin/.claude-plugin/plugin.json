@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "author": {
     "name": "Quark Engine",
-    "url": "https://github.com/quark-engine/quark-engine"
+    "url": "https://github.com/ev-flow/quark-engine"
   },
-  "homepage": "https://github.com/quark-engine/quark-engine",
+  "homepage": "https://github.com/ev-flow/quark-engine",
   "keywords": ["android", "malware", "apk", "security", "quark"]
 }

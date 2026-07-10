@@ -1,12 +1,10 @@
 {
   "name": "quark-engine",
   "owner": {
-    "name": "Quark Engine",
-    "url": "https://github.com/quark-engine/quark-engine"
+    "name": "Quark Engine"
   },
-  "metadata": {
-    "description": "Quark Engine tools for Claude Code — Android APK malware analysis and detection-rule generation."
-  },
+  "description": "Quark Engine tools for Claude Code — Android APK malware analysis and detection-rule generation.",
+  "version": "1.0.0",
   "plugins": [
     {
       "name": "quark",

@@ -31,10 +31,10 @@ A decompiled code snippet is required to identify the correct class names, metho
 **If no snippet is available:** extract relevant method listings from the APK:
 
 ```bash
-# Preferred: native APIs only, filtered by suspected package
+# Native Android SDK APIs only, filtered by suspected package — use this first
 quark -i native -a "<apk_path>" | grep "<suspected_package>"
 
-# Fallback: all methods (large output — use grep to filter)
+# Only if -i native finds nothing: fall back to all methods (very large output)
 quark -i all -a "<apk_path>" | grep "<suspected_package>"
 ```
 
@@ -95,23 +95,16 @@ Quark rules use **Dalvik bytecode descriptor syntax**. Getting this wrong causes
       "descriptor": "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/app/PendingIntent;Landroid/app/PendingIntent;)V"
     }
   ],
-  "score": 4,
+  "score": 1,
   "label": ["location", "collection"]
 }
 ```
 
 ## Step 5 — Assign score and labels
 
-**Score** (1–8) — reflects the deepest evidence you observed in the sample:
-
-| Score | Stage evidence |
-|-------|---------------|
-| 1–2 | Both APIs exist in the APK; no co-occurrence confirmed yet |
-| 3–4 | API pair co-occurs in the same parent method (Stage 3) |
-| 5–6 | API pair is called in the defined sequence (Stage 4) |
-| 7–8 | Data flow (register sharing) confirmed between the two API calls (Stage 5) |
-
-Assign the score that reflects what you *observed*, not your intent. A freshly generated rule validated only at Stage 3 → score 3–4.
+**Score** — always set `1` for a newly generated rule. The final score depends on
+how the behavior is distributed across real malware samples, so an analyst must
+study that distribution and adjust the score later.
 
 **Labels** — use canonical labels from the existing rules repo:
 
@@ -134,7 +127,7 @@ cat > /tmp/quark_candidate_rule.json << 'EOF'
     {"class": "...", "method": "...", "descriptor": "..."},
     {"class": "...", "method": "...", "descriptor": "..."}
   ],
-  "score": 4,
+  "score": 1,
   "label": ["..."]
 }
 EOF

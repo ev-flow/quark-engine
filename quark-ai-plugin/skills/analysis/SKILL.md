@@ -134,6 +134,6 @@ Print the raw quark output verbatim first — do not summarize or paraphrase it.
 After the raw output, provide analysis and offer next steps:
 
 - **(a)** Re-run with a different format or a specific rule file
-- **(b)** Generate a new Quark rule for a suspicious behavior seen in the output — use the **quark-rule-gen** skill
+- **(b)** Generate a new Quark rule for a suspicious behavior seen in the output — use the **`/quark:rule-gen`** skill
 - **(c)** Export to JSON: re-run with `-o report.json` for downstream processing
 - **(d)** View call graph: re-run with `-s -g png` to visualize which methods triggered a rule
