@@ -120,19 +120,19 @@ Example output:
 
 ## Quark-Engine Skills
 
-Quark-Engine also provides two skills for analyzing APKs and building rules.
+Quark-Engine also ships two Claude Code skills:
 
-- **`/quark:analysis`** — run APK analysis with Quark-Engine
+- **`/quark:analysis`** — analyze an APK with Quark-Engine
 - **`/quark:rule-gen`** — generate a Quark rule from decompiled code
 
-Install Quark-Engine, then type these two commands inside Claude Code to install the plugin:
+To install, run these commands inside Claude Code after installing Quark-Engine:
 
 ```
 /plugin marketplace add ev-flow/quark-engine
 /plugin install quark@quark-engine
 ```
 
-You should then see the skills.
+The skills then should appear.
 
 ## Acknowledgments
 
