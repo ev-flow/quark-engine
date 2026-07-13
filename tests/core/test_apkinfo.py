@@ -1,4 +1,5 @@
 import os
+from types import SimpleNamespace
 from typing import Literal, Tuple
 import zipfile
 
@@ -688,6 +689,24 @@ class TestApkinfo:
         upper_set = apkinfo.superclass_relationships[class_name]
 
         assert expected_upper_class == upper_set
+
+    def test_superclass_relationships_include_implemented_interfaces(self):
+        apkinfo = AndroguardImp.__new__(AndroguardImp)
+        apkinfo.analysis = SimpleNamespace(
+            get_classes=lambda: [
+                SimpleNamespace(
+                    name="Lexample/Child;",
+                    extends="Lexample/Parent;",
+                    implements=["Lexample/FirstInterface;", "Lexample/SecondInterface;"],
+                )
+            ]
+        )
+
+        assert apkinfo.superclass_relationships["Lexample/Child;"] == {
+            "Lexample/Parent;",
+            "Lexample/FirstInterface;",
+            "Lexample/SecondInterface;",
+        }
 
     @staticmethod
     @pytest.mark.parametrize(

@@ -452,7 +452,7 @@ class AndroguardImp(BaseApkinfo):
 
         for _class in self.analysis.get_classes():
             hierarchy_dict[str(_class.name)].add(str(_class.extends))
-            hierarchy_dict[str(_class.name)].union(
+            hierarchy_dict[str(_class.name)].update(
                 str(implements) for implements in _class.implements
             )
 
