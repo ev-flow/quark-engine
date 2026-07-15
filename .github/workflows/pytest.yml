@@ -6,7 +6,7 @@ name: build
 on:
   push:
     branches: [ master ]
-  pull_request_target:
+  pull_request:
     branches: [ master ]
 
 jobs:
@@ -48,9 +48,6 @@ jobs:
         cd /opt/radare2-5.9.0
         sudo sys/install.sh --without-pull
         cd -
- 
-        # Install langchain and it's OpenAI integration
-        python -m pip install langchain==0.2.11 langchain-core==0.2.23 langchain-openai==0.1.17 --upgrade
 
         # Install click <= 8.1.7 for CLI supports
         python -m pip install "click<=8.1.7"
@@ -61,7 +58,7 @@ jobs:
         cargo install project_ares@0.10.0
 
     - name: Install Quark-Engine
-      run: pip install .
+      run: pip install ".[QuarkAgent]"
 
     - name: Test with pytest
       run: |
@@ -70,10 +67,8 @@ jobs:
         pytest --cov=./ --cov-report=xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4.4.0
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
         flags: unittests
-        token: ${{ secrets.CODECOV_TOKEN }}
-        version: v0.6.0 
 

@@ -44,18 +44,8 @@ def entryPoint(api_key: str) -> None:
 
     try:
         from langchain_openai import ChatOpenAI
-        from langchain.agents import AgentExecutor
-        from langchain_core.prompts import (
-            ChatPromptTemplate,
-            MessagesPlaceholder,
-        )
+        from langchain.agents import create_agent
         from langchain_core.messages import AIMessage, HumanMessage
-        from langchain.agents.output_parsers.openai_tools import (
-            OpenAIToolsAgentOutputParser,
-        )
-        from langchain.agents.format_scratchpad.openai_tools import (
-            format_to_openai_tool_messages,
-        )
     except ModuleNotFoundError:
         __printDependencyMissingMessage()
         # langchain is not installed.
@@ -69,58 +59,31 @@ def entryPoint(api_key: str) -> None:
         return
 
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.8)
-    llmWithTools = llm.bind_tools(agentTools)
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                (
-                    "You are very powerful assistant, "
-                    + "but don't know current events"
-                )
-                + SUMMARY_REPORT_FORMAT,
-            ),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("user", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad"),
-        ]
+    systemPrompt = (
+        "You are very powerful assistant, but don't know current events"
+        + SUMMARY_REPORT_FORMAT
     )
 
-    agent = (
-        {
-            "input": lambda x: x["input"],
-            "agent_scratchpad": lambda x: format_to_openai_tool_messages(
-                x["intermediate_steps"]
-            ),
-            "chat_history": lambda x: x["chat_history"],
-        }
-        | prompt
-        | llmWithTools
-        | OpenAIToolsAgentOutputParser()
+    agentExecutor = create_agent(
+        model=llm, tools=agentTools, system_prompt=systemPrompt
     )
 
-    agentExecutor = AgentExecutor(agent=agent, tools=agentTools, verbose=False)
-
-    conversationHistory = []
+    conversationHistory: list[HumanMessage | AIMessage] = []
 
     try:
         inputText = input(green("User Input: "))
         while inputText.lower() != "bye":
             if inputText:
+                conversationHistory.append(HumanMessage(content=inputText))
                 response = agentExecutor.invoke(
-                    {"input": inputText, "chat_history": conversationHistory}
+                    {"messages": conversationHistory}
                 )
-
-                conversationHistory.extend(
-                    [
-                        HumanMessage(content=inputText),
-                        AIMessage(content=response["output"]),
-                    ]
-                )
+                replyText = response["messages"][-1].content
+                conversationHistory.append(AIMessage(content=replyText))
 
                 print()
-                print(cyan("Agent: "), response["output"])
+                print(cyan("Agent: "), replyText)
                 print()
 
             inputText = input(green("User Input: "))

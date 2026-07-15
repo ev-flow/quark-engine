@@ -6,12 +6,7 @@ import json
 from flask import Flask, render_template, request
 
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputParser
-from langchain.agents.format_scratchpad.openai_tools import (
-    format_to_openai_tool_messages,
-)
+from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage
 from quark.agent.agentTools import agentTools
 from quark.agent.prompts import PREPROMPT
@@ -24,37 +19,15 @@ conversation_history = []
 
 
 llm = ChatOpenAI(model="gpt-4o", temperature=0.2)
-llm_with_tools = llm.bind_tools(agentTools)
 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-                "system",
-                (
-                    "You are very powerful assistant, "
-                    + "but don't know current events"
-                ) + PREPROMPT,
-        ),
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("user", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ]
+systemPrompt = (
+    "You are very powerful assistant, but don't know current events"
+    + PREPROMPT
 )
 
-agent = (
-    {
-        "input": lambda x: x["input"],
-        "agent_scratchpad": lambda x: format_to_openai_tool_messages(
-            x["intermediate_steps"]
-        ),
-        "chat_history": lambda x: x["chat_history"],
-    }
-    | prompt
-    | llm_with_tools
-    | OpenAIToolsAgentOutputParser()
+agent_executor = create_agent(
+    model=llm, tools=agentTools, system_prompt=systemPrompt
 )
-
-agent_executor = AgentExecutor(agent=agent, tools=agentTools, verbose=False)
 
 
 @app.route("/")
@@ -66,19 +39,13 @@ def index():
 def get_response():
     message = request.args.get("message")
     conversation_history.append(message)
+    conversation_history.append(HumanMessage(content=message))
 
-    response = agent_executor.invoke(
-        {"input": message, "chat_history": conversation_history}
-    )
+    response = agent_executor.invoke({"messages": conversation_history})
+    replyText = response["messages"][-1].content
+    conversation_history.append(AIMessage(content=replyText))
 
-    conversation_history.extend(
-        [
-            HumanMessage(content=message),
-            AIMessage(content=response["output"]),
-        ]
-    )
-
-    full_response = response["output"]
+    full_response = replyText
     conversation_history.append(full_response)
 
     code_blocks = re.findall(r'```(.*?)```', full_response, re.DOTALL)
