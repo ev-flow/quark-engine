@@ -15,7 +15,7 @@ tqdm = "<=4.66.5"
 colorama = "<=0.4.4"
 quark-engine = {editable = true,path = "."}
 click = "<=8.1.7"
-androguard = "==3.4.0a1"
+androguard = "==4.1.4"
 graphviz = "<=0.18.2"
 requests = "<=2.33.0"
 plotly = "<=5.4.0"
@@ -28,7 +28,7 @@ r2pipe = "==1.8.0"
 pathvalidate = "==3.2.3"
 
 [requires]
-python_version = "3.10"
+python_version = ">=3.10"
 
 [pipenv]
 allow_prereleases = true
