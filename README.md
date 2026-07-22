@@ -68,6 +68,8 @@
   </tr>
   <tr>
       <td><img src="https://github.com/user-attachments/assets/986d23eb-48de-459f-9714-f4685fd3e696" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/d175889c-1442-428d-911a-628b5cdbb7d4" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/514f2dd2-d456-42b9-8d15-18e6988e3aa5" width="310"></td>
   </tr>
 </table>
 
@@ -93,6 +95,8 @@
 | Cerberus    | Banking trojan targeting financial credentials through overlay and device control. | 1. Perform overlay attacks to steal credentials.<br>2. Abuse Accessibility services.<br>3. Log user input (keylogging).<br>4. Enable remote control via C2. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#cerberus-malware-family-analysis-report) |
 | SuperCardX  | NFC relay malware enabling contactless payment fraud. | 1. Read NFC payment card data.<br>2. Relay NFC transactions to attacker-controlled devices.<br>3. Communicate with C2 servers.<br>4. Facilitate unauthorized contactless payments. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#supercardx-malware-family-analysis-report) |
 | NGate       | NFC-based malware enabling relay attacks and payment fraud. | 1. Read NFC payment card data.<br>2. Relay NFC communications to attacker-controlled devices.<br>3. Communicate with C2 servers.<br>4. Facilitate unauthorized contactless payments. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#ngate-malware-family-analysis-report) |
+| AhRat       | Android RAT capable of surveillance and data theft. | 1. Record audio from the device.<br>2. Steal files and sensitive data.<br>3. Remote access via C2.<br>4. Execute remote commands. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#ahrat-malware-family-analysis-report) |
+| AndroRat    | Android remote access trojan for device surveillance. | 1. Record audio and capture video.<br>2. Track device location.<br>3. Steal files and device information.<br>4. Execute remote commands. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#androrat-malware-family-analysis-report) |
 
 ## Quick Start
 
