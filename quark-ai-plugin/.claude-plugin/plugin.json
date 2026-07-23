@@ -1,0 +1,11 @@
+{
+  "name": "quark",
+  "description": "Quark Engine skills for Claude Code: run APK malware analysis and generate detection rules.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Quark Engine",
+    "url": "https://github.com/ev-flow/quark-engine"
+  },
+  "homepage": "https://github.com/ev-flow/quark-engine",
+  "keywords": ["android", "malware", "apk", "security", "quark"]
+}

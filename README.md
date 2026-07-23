@@ -122,6 +122,22 @@ Example output:
 <img width="1280" height="461" alt="Screenshot-2025-11-25-22-36-54" src="https://github.com/user-attachments/assets/fc919b8d-d10d-4f14-bdd5-0a58b0893708" />
 
 
+## Quark-Engine Skills
+
+Quark-Engine also ships two Claude Code skills:
+
+- **`/quark:analysis`** — analyze an APK with Quark-Engine
+- **`/quark:rule-gen`** — generate a Quark rule from decompiled code
+
+To install, run these commands inside Claude Code after installing Quark-Engine:
+
+```
+/plugin marketplace add ev-flow/quark-engine
+/plugin install quark@quark-engine
+```
+
+The skills then should appear.
+
 ## Acknowledgments
 
 ### The Honeynet Project

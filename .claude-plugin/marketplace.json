@@ -1,0 +1,15 @@
+{
+  "name": "quark-engine",
+  "owner": {
+    "name": "Quark Engine"
+  },
+  "description": "Quark Engine tools for Claude Code — Android APK malware analysis and detection-rule generation.",
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "name": "quark",
+      "source": "./quark-ai-plugin",
+      "description": "Quark Engine skills: run APK malware analysis (/quark:analysis) and generate detection rules (/quark:rule-gen)."
+    }
+  ]
+}
