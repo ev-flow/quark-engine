@@ -101,6 +101,7 @@
 | AhRat       | Android RAT capable of surveillance and data theft. | 1. Record audio from the device.<br>2. Steal files and sensitive data.<br>3. Remote access via C2.<br>4. Execute remote commands. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#ahrat-malware-family-analysis-report) |
 | AndroRat    | Android remote access trojan for device surveillance. | 1. Record audio and capture video.<br>2. Track device location.<br>3. Steal files and device information.<br>4. Execute remote commands. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#androrat-malware-family-analysis-report) |
 | Sova        | Android banking trojan distributed as trojanised carrier apps for credential theft and SMS fraud. | 1. Read device identifiers via the C2 ping-response handler.<br>2. Inject outbound SMS on operator command.<br>3. Place phone calls without user consent. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#sova-malware-family-analysis-report) |
+| EventBot    | Banking trojan and infostealer targeting 200+ financial apps. | 1. Enumerate installed applications to pick targets.<br>2. Intercept incoming SMS via a broadcast receiver.<br>3. Exfiltrate SMS bodies over HTTP to defeat 2FA. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#eventbot-malware-family-analysis-report) |
 
 ## Quick Start
 
