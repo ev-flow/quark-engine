@@ -3,15 +3,17 @@ quark-engine (26.8.1-0kali1) kali-dev; urgency=medium
   * Document Enhancement
 
     - Add Quark malware analysis reports for AhRat, AndroRAT, and Sova. (#934, #954, and #957)
-    - Fix broken links in malware report README files. (#942)
+    - Fix broken links in malware report README files. Thanks to @wenxiaojie1. (#942)
 
   * Bug Fixes
 
-    - Include interfaces in superclass relationship resolution and validate default rule paths only when they are used. (#953 and #937)
+    - Include interfaces in superclass relationship resolution. Thanks to @wenxiaojie1. (#953)
+    - Validate default rule paths only when they are used. Thanks to @gaoflow and @MickeyWzt. (#937)
 
   * Dependency Update
 
-    - Upgrade Androguard and bump pip and setuptools to newer versions. (#928, #951, and #956)
+    - Upgrade Androguard to newer versions. Thanks to @trpyn. (#928)
+    - Bump pip and setuptools to newer versions. (#951, and #956)
 
   * New Feature
 
