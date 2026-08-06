@@ -12,14 +12,13 @@ quark-engine (26.8.1-0kali1) kali-dev; urgency=medium
 
   * Dependency Update
 
-    - Upgrade Androguard to newer versions. Thanks to @trpyn. (#928)
     - Bump pip and setuptools to newer versions. (#951, and #956)
 
   * New Feature
 
-    - Add Claude Code skills for `/quark`, `/quark-rule-gen`, and dependency-update PR validation. (#947 and #932)
+    - Add Claude Code skills: `/quark` and `/quark-rule-gen`. (#947)
 
- --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 03 Aug 2026 11:34:41 +0800
+ --  James Chiang <e619003@gmail.com>  Mon, 03 Aug 2026 11:34:41 +0800
 
 quark-engine (26.7.1-0kali1) kali-dev; urgency=medium
 
