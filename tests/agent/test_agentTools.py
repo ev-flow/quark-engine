@@ -109,7 +109,7 @@ def testGetAnalysisResultScore(quarkObject):
 def testColorizeInColor(colorizeFunction, expectedColorCode):
     text = "Text"
 
-    result = colorizeFunction(text)
+    result = colorizeFunction.func(text)
 
     if sys.platform == "win32" and os.getenv("TERM") != "xterm":
         assert result == text
