@@ -73,6 +73,8 @@
   </tr>
   <tr>
       <td><img src="https://github.com/user-attachments/assets/9eaf2751-1579-4fba-9d71-d201b723dc4d" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/dfe535ee-71fa-499b-98eb-0a8f4854182c" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/d827122b-63cf-4370-895d-e38a274d19c9" width="310"></td>
   </tr>
 </table>
 
@@ -102,6 +104,7 @@
 | AndroRat    | Android remote access trojan for device surveillance. | 1. Record audio and capture video.<br>2. Track device location.<br>3. Steal files and device information.<br>4. Execute remote commands. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#androrat-malware-family-analysis-report) |
 | Sova        | Android banking trojan distributed as trojanised carrier apps for credential theft and SMS fraud. | 1. Read device identifiers via the C2 ping-response handler.<br>2. Inject outbound SMS on operator command.<br>3. Place phone calls without user consent. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#sova-malware-family-analysis-report) |
 | EventBot    | Banking trojan and infostealer targeting 200+ financial apps. | 1. Enumerate installed applications to pick targets.<br>2. Intercept incoming SMS via a broadcast receiver.<br>3. Exfiltrate SMS bodies over HTTP to defeat 2FA. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#eventbot-malware-family-analysis-report) |
+| Skygofree   | Android spyware designed for surveillance and sensitive data collection. | 1. Capture audio.<br>2. Access stored application data.<br>3. Download new code at runtime.<br>4. Capture video. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-skygofree) |
 
 ## Quick Start
 
