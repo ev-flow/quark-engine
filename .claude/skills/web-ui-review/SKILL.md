@@ -1,6 +1,7 @@
 ---
 name: web-ui-review
 description: Frontend code quality checklist and review automation scripts for PRs touching UI, components, styles, and browser interactions
+allowed-tools: Bash, Grep, Read
 ---
 
 # Frontend Review
