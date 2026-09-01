@@ -184,7 +184,7 @@ MAX_SEARCH_LAYER = 3
 class Quark:
     """Quark module is used to check quark's five-stage theory"""
 
-    def __init__(self, apk, core_library="androguard", auto_fix_checksum=False, dynamic_resolve=False):
+    def __init__(self, apk, core_library="dextrace", auto_fix_checksum=False, dynamic_resolve=False):
         """
 
         :param apk: the filename of the apk.

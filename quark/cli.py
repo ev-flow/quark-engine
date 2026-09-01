@@ -19,7 +19,7 @@ from quark.logo import logo
 from quark.rulegeneration import RuleGeneration
 from quark.utils.colors import yellow
 from quark.utils.graph import select_label_menu, show_comparison_graph
-from quark.utils.pprint import print_info, print_success, print_warning
+from quark.utils.pprint import print_error, print_info, print_success, print_warning
 from quark.utils.weight import Weight
 from quark.webreport.generate import ReportGenerator
 
@@ -140,7 +140,7 @@ logo()
         case_sensitive=False
     ),
     required=False,
-    default="androguard",
+    default="dextrace",
 )
 @click.option(
     "--multi-process",

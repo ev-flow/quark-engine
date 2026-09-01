@@ -277,13 +277,22 @@ class Method:
         """
 
         parentsHierarchy = list()
-        targetClassAnalysis = self.quark.apkinfo.analysis.get_class_analysis(
-            self.class_name)
+        superclassRelationships = self.quark.apkinfo.superclass_relationships
+        currentClass = self.class_name
 
-        while targetClassAnalysis and "Ljava/lang/Object;" != targetClassAnalysis.extends:
-            parentsHierarchy.append(targetClassAnalysis.extends)
-            targetClassAnalysis = self.quark.apkinfo.analysis.get_class_analysis(
-                targetClassAnalysis.extends)
+        while True:
+            parents = superclassRelationships.get(currentClass)
+            if not parents:
+                break
+
+            # superclass_relationships mixes extends + implements; take the
+            # first parent as the superclass edge (rules/backends don't
+            # distinguish the two either).
+            currentClass = next(iter(parents))
+            if currentClass == "Ljava/lang/Object;":
+                break
+
+            parentsHierarchy.append(currentClass)
 
         return parentsHierarchy
 
