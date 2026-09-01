@@ -47,9 +47,9 @@ Once you see the following msg, then you're all set::
       -l, --label [max|detailed]      Show report based on label of rules
       -C, --comparison                Behaviors comparison based on max confidence
                                       of rule labels
-      --core-library [androguard|rizin|radare2|shuriken]
+      --core-library [androguard|rizin|radare2|shuriken|dextrace]
                                       Specify the core library used to analyze an
-                                      APK
+                                      APK  [default: dextrace]
       --multi-process INTEGER RANGE   Allow analyzing APK with N processes, 
                                       where N doesn't exceeds the number of usable CPUs - 1 
                                       to avoid memory exhaustion.
