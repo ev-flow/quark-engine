@@ -2,6 +2,8 @@
 # This file is part of Quark-Engine - https://github.com/quark-engine/quark-engine
 # See the file 'LICENSE' for copying permission.
 
+from unittest.mock import MagicMock
+
 import pytest
 from quark.core.quark import Quark
 from quark.core.struct.methodobject import MethodObject
@@ -133,6 +135,7 @@ class TestReceiver:
         receiver = getReceivers(SAMPLE_PATH_13667)[0]
         assert receiver.isExported() is True
 
+
 class TestProvider:
     @staticmethod
     def testIsNotExported(SAMPLE_PATH_Vuldroid):
@@ -143,6 +146,7 @@ class TestProvider:
     def testIsExported(SAMPLE_PATH_pivaa):
         provider = getProviders(SAMPLE_PATH_pivaa)[0]
         assert provider.isExported() is True
+
 
 class TestMethod:
     @staticmethod
@@ -219,14 +223,10 @@ class TestMethod:
             return Method(quarkResult, methodObj)
 
         def __getMethodWithTarget(
-            quark: Quark,
-            methodObj: MethodObject,
-            targetMethod: Method
+            quark: Quark, methodObj: MethodObject, targetMethod: Method
         ) -> Method:
             return Method(
-                quark=quark,
-                methodObj=methodObj,
-                targetMethod=targetMethod
+                quark=quark, methodObj=methodObj, targetMethod=targetMethod
             )
 
         methodCaller = __getMethod(
@@ -254,25 +254,27 @@ class TestMethod:
             secondAPI,
         )
 
-        targetMethod = \
+        targetMethod = (
             QUARK_ANALYSIS_RESULT_FOR_RULE_68.quark.apkinfo.find_method(
                 class_name="Landroid/util/Log;",
                 method_name="e",
                 descriptor="(Ljava/lang/String; Ljava/lang/String;)I",
             )[0]
+        )
 
-        callerMethodObj = \
+        callerMethodObj = (
             QUARK_ANALYSIS_RESULT_FOR_RULE_68.quark.apkinfo.find_method(
                 class_name="Lcom/google/progress/WifiCheckTask;",
                 method_name="CloseWifi",
                 descriptor="()V",
             )[0]
+        )
 
         targetMethod = Method(methodObj=targetMethod)
         callerMethodInstance = __getMethodWithTarget(
             QUARK_ANALYSIS_RESULT_FOR_RULE_68.quark,
             callerMethodObj,
-            targetMethod
+            targetMethod,
         )
 
         arguments = behavior.secondAPI.getArguments()
@@ -288,12 +290,37 @@ class TestMethod:
             descriptor="()Z",
         )
 
-        method = Method(QUARK_ANALYSIS_RESULT_FOR_RULE_68,
-                        methodObj, QUARK_ANALYSIS_RESULT_FOR_RULE_68.quark)
-
-        assert (
-            ["Ljava/util/TimerTask;"] == method.findSuperclassHierarchy()
+        method = Method(
+            QUARK_ANALYSIS_RESULT_FOR_RULE_68,
+            methodObj,
+            QUARK_ANALYSIS_RESULT_FOR_RULE_68.quark,
         )
+
+        assert ["Ljava/util/TimerTask;"] == method.findSuperclassHierarchy()
+
+    @staticmethod
+    def testFindSuperclassHierarchyStopsAtObject():
+        # Regression test: when superclass_relationships resolves the
+        # chain all the way up to "Ljava/lang/Object;", the walk must
+        # stop there and must NOT append "Ljava/lang/Object;" itself
+        # to the returned hierarchy.
+        methodObj = MethodObject(
+            class_name="Lcom/example/Foo;",
+            name="doWork",
+            descriptor="()V",
+        )
+
+        mockApkinfo = MagicMock()
+        mockApkinfo.superclass_relationships = {
+            "Lcom/example/Foo;": {"Lcom/example/Bar;"},
+            "Lcom/example/Bar;": {"Ljava/lang/Object;"},
+        }
+        mockQuark = MagicMock()
+        mockQuark.apkinfo = mockApkinfo
+
+        method = Method(methodObj=methodObj, quark=mockQuark)
+
+        assert method.findSuperclassHierarchy() == ["Lcom/example/Bar;"]
 
 
 class TestBehavior:
@@ -364,8 +391,11 @@ class TestBehavior:
         behavior = behaviorOccurList[0]
         method = behavior.getMethodsInArgs()[1].fullName
 
-        assert method == "Landroid/telephony/SmsManager;" + \
-            " getDefault ()Landroid/telephony/SmsManager;"
+        assert (
+            method
+            == "Landroid/telephony/SmsManager;"
+            + " getDefault ()Landroid/telephony/SmsManager;"
+        )
 
 
 class TestQuarkReuslt:
@@ -426,8 +456,7 @@ class TestQuarkReuslt:
 
     @staticmethod
     def testIsNotHardCoded(QUARK_ANALYSIS_RESULT_FOR_RULE_68):
-        assert QUARK_ANALYSIS_RESULT_FOR_RULE_68.isHardcoded(
-            "Quark") is False
+        assert QUARK_ANALYSIS_RESULT_FOR_RULE_68.isHardcoded("Quark") is False
 
     @staticmethod
     def testFindMethodInCallerWithListOfStr(QUARK_ANALYSIS_RESULT_FOR_RULE_68):
@@ -498,10 +527,13 @@ def testGetReceivers(SAMPLE_PATH_14d9f) -> None:
 
 def testfindMethodInAPK(SAMPLE_PATH_14d9f) -> None:
 
-    method = findMethodInAPK(SAMPLE_PATH_14d9f, [
-        "Lcom/google/progress/WifiCheckTask;",
-        "checkWifiCanOrNotConnectServer",
-        "([Ljava/lang/String;)Z"]
+    method = findMethodInAPK(
+        SAMPLE_PATH_14d9f,
+        [
+            "Lcom/google/progress/WifiCheckTask;",
+            "checkWifiCanOrNotConnectServer",
+            "([Ljava/lang/String;)Z",
+        ],
     )
 
     assert len(method) == 2
@@ -511,24 +543,30 @@ def testCheckMethodCalls(SAMPLE_PATH_14d9f) -> None:
     targetMethod = [
         "Lcom/google/progress/WifiCheckTask;",
         "checkWifiCanOrNotConnectServer",
-        "([Ljava/lang/String;)Z"
+        "([Ljava/lang/String;)Z",
     ]
 
-    checkMethods  = []
-    checkMethods.append(tuple([
-        "Landroid/util/Log;",
-        "e",
-        "(Ljava/lang/String; Ljava/lang/String;)I"
-    ]))
+    checkMethods = []
+    checkMethods.append(
+        tuple(
+            [
+                "Landroid/util/Log;",
+                "e",
+                "(Ljava/lang/String; Ljava/lang/String;)I",
+            ]
+        )
+    )
 
-    assert checkMethodCalls(SAMPLE_PATH_14d9f, targetMethod, checkMethods) is True
+    assert (
+        checkMethodCalls(SAMPLE_PATH_14d9f, targetMethod, checkMethods) is True
+    )
 
 
 def testFindMethodImpls(SAMPLE_PATH_pivaa) -> None:
     abstractMethod = [
         "Ljavax/net/ssl/HostnameVerifier;",
         "verify",
-        "(Ljava/lang/String; Ljavax/net/ssl/SSLSession;)Z"
+        "(Ljava/lang/String; Ljavax/net/ssl/SSLSession;)Z",
     ]
     methodImpls = findMethodImpls(SAMPLE_PATH_pivaa, abstractMethod)
     assert len(methodImpls) == 1
@@ -541,6 +579,6 @@ def testIsMethodReturnAlwaysTrue(SAMPLE_PATH_pivaa) -> None:
     targetMethod = [
         "Lcom/htbridge/pivaa/handlers/API$1;",
         "verify",
-        "(Ljava/lang/String; Ljavax/net/ssl/SSLSession;)Z"
+        "(Ljava/lang/String; Ljavax/net/ssl/SSLSession;)Z",
     ]
     assert isMethodReturnAlwaysTrue(SAMPLE_PATH_pivaa, targetMethod) is True

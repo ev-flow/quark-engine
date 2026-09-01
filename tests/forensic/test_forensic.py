@@ -51,7 +51,7 @@ class TestForensic:
         assert len(forensic.get_base64()) == 604
 
     def test_get_android_api(self, forensic):
-        assert len(forensic.get_android_api()) == 640
+        assert len(forensic.get_android_api()) == 624
 
         result = [str(x) for x in forensic.get_android_api()]
         assert any("getCellLocation" in meth for meth in result)

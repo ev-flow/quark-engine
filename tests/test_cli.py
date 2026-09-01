@@ -5,6 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from quark.cli import entry_point
+from quark.core.interface.baseapkinfo import CoreLibraryUnavailable
 
 
 @pytest.fixture
@@ -99,3 +100,31 @@ def test_existing_rules_directory_is_loaded(tmp_path, monkeypatch, mock_quark):
 
     assert result.exit_code == 0
     mock_quark.assert_called_once()
+
+
+def test_core_library_unavailable_exits_with_error(tmp_path, monkeypatch):
+    # Regression test: when the chosen --core-library backend's optional
+    # dependency (rizin/radare2/Shuriken) is missing, entry_point must
+    # report the error and exit 1 instead of letting the exception
+    # propagate as a traceback.
+    missing_default_rules = tmp_path / "missing-rules"
+    apk = tmp_path / "sample.apk"
+    apk.write_text("")
+    monkeypatch.setattr(_rule_option(), "default", str(missing_default_rules))
+
+    with patch(
+        "quark.cli.Quark",
+        side_effect=CoreLibraryUnavailable("core library not installed"),
+    ):
+        runner = CliRunner()
+
+        custom_rule = tmp_path / "custom_rule.json"
+        _write_rule(custom_rule)
+
+        result = runner.invoke(
+            entry_point,
+            ["-a", str(apk), "-s", str(custom_rule)],
+        )
+
+    assert result.exit_code == 1
+    assert "core library not installed" in result.output
