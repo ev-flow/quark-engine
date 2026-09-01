@@ -28,7 +28,7 @@ r2pipe = "==1.8.0"
 pathvalidate = "==3.2.3"
 
 [requires]
-python_version = ">=3.10"
+python_version = "3.10"
 
 [pipenv]
 allow_prereleases = true
