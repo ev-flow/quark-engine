@@ -700,8 +700,10 @@ class Quark:
                 )
 
                 if mutual_parent_function_list is None:
-                    # Exit if the level 4 stage check fails.
-                    return
+                    # No intersection for this (first_api, second_api) pair,
+                    # try the next candidate pair instead of aborting the
+                    # whole rule check.
+                    continue
                 for parent_function in mutual_parent_function_list:
                     first_wrapper = []
                     second_wrapper = []
