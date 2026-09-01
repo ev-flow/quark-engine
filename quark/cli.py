@@ -4,12 +4,14 @@
 
 import json
 import os
+import sys
 
 import click
 import numpy as np
 from tqdm import tqdm
 
 from quark import __version__, config
+from quark.core.interface.baseapkinfo import CoreLibraryUnavailable
 from quark.core.parallelquark import ParallelQuark
 from quark.core.quark import Quark
 from quark.core.struct.ruleobject import RuleObject
@@ -252,11 +254,15 @@ def entry_point(
         # perform label based analysis on the apk_
         malware_confidences = {}
         for apk_ in apk:
-            data = (
-                ParallelQuark(apk_, core_library, num_of_process, auto_fix_checksum, dynamic_resolve)
-                if num_of_process > 1
-                else Quark(apk_, core_library, auto_fix_checksum, dynamic_resolve=dynamic_resolve)
-            )
+            try:
+                data = (
+                    ParallelQuark(apk_, core_library, num_of_process, auto_fix_checksum, dynamic_resolve)
+                    if num_of_process > 1
+                    else Quark(apk_, core_library, auto_fix_checksum, dynamic_resolve=dynamic_resolve)
+                )
+            except CoreLibraryUnavailable as e:
+                print_error(str(e))
+                sys.exit(1)
             all_labels = {}
             # dictionary containing
             # key: label
@@ -309,11 +315,15 @@ def entry_point(
         return
 
     # Load APK
-    data = (
-        ParallelQuark(apk[0], core_library, num_of_process, auto_fix_checksum, dynamic_resolve)
-        if num_of_process > 1
-        else Quark(apk[0], core_library, auto_fix_checksum, dynamic_resolve=dynamic_resolve)
-    )
+    try:
+        data = (
+            ParallelQuark(apk[0], core_library, num_of_process, auto_fix_checksum, dynamic_resolve)
+            if num_of_process > 1
+            else Quark(apk[0], core_library, auto_fix_checksum, dynamic_resolve=dynamic_resolve)
+        )
+    except CoreLibraryUnavailable as e:
+        print_error(str(e))
+        sys.exit(1)
 
     if label:
         all_labels = {}
