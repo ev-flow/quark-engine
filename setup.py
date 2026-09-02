@@ -14,11 +14,9 @@ required_requirements = [
     "graphviz",
     "prompt-toolkit",
     "plotly",
-    "rzpipe",
     "click",
-    "r2pipe==1.8.0",
     "pathvalidate==3.2.3",
-    "dextrace",
+    "dextrace>=26.9.1",
 ]
 
 quarkAgentRequirements = [
@@ -27,6 +25,10 @@ quarkAgentRequirements = [
     "langchain-openai==0.1.17",
     "flask==3.1.3",
 ]
+
+rizinRequirements = ["rzpipe"]
+
+radare2Requirements = ["r2pipe==1.8.0"]
 
 setuptools.setup(
     name="quark-engine",  # Replace with your own username
@@ -62,5 +64,7 @@ setuptools.setup(
     install_requires=required_requirements,
     extras_require={
         "QuarkAgent": quarkAgentRequirements,
+        "rizin": rizinRequirements,
+        "radare2": radare2Requirements,
     },
 )

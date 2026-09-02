@@ -20,6 +20,18 @@ from quark.utils.pprint import print_warning
 
 ANDROID_MANIFEST_FILE_NAME = "AndroidManifest.xml"
 
+
+class CoreLibraryUnavailable(Exception):
+    """
+    Raised when a --core-library backend's Python dependency (or the
+    external tool it wraps) is not installed, e.g. rizin/radare2/Shuriken
+    when only their optional extra was skipped at install time.
+    """
+
+    def __init__(self, message):
+        super(CoreLibraryUnavailable, self).__init__(message)
+
+
 class BaseApkinfo:
 
     __slots__ = [

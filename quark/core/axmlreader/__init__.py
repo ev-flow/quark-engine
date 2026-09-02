@@ -11,8 +11,6 @@ from xml.etree.ElementTree import Element as XMLElement  # nosec B405
 from xml.etree.ElementTree import ElementTree as XMLElementTree  # nosec B405
 
 import importlib.resources
-import rzpipe
-import r2pipe
 
 # Resource Types Definition
 # Please reference to
@@ -107,8 +105,24 @@ class AxmlReader:
             )
 
         if core_library == "rizin":
+            try:
+                import rzpipe
+            except ModuleNotFoundError:
+                raise AxmlException(
+                    "--core-library rizin requires the 'rizin' extra:"
+                    " pip install quark-engine[rizin]"
+                    " (also requires the rizin binary itself)"
+                )
             self._core = rzpipe.open(file_path)
         elif core_library == "radare2":
+            try:
+                import r2pipe
+            except ModuleNotFoundError:
+                raise AxmlException(
+                    "--core-library radare2 requires the 'radare2' extra:"
+                    " pip install quark-engine[radare2]"
+                    " (also requires the radare2 binary itself)"
+                )
             self._core = r2pipe.open(file_path)
 
         self._core.cmd(f"pfo {structure_path}")

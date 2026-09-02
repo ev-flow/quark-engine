@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for copying permission.
 
 from quark.core.apkinfo import AndroguardImp
+from quark.core.dextraceapkinfo import DexTraceImp
 from quark.core.rzapkinfo import RizinImp
 from quark.utils.regex import (
     extract_url,
@@ -16,11 +17,14 @@ from quark.utils.regex import (
 class Forensic:
     __slots__ = ["apk", "all_strings"]
 
-    def __init__(self, apkpath, core_library="androguard"):
-        if core_library == "rizin":
-            self.apk = RizinImp(apkpath)
-        elif core_library == "androguard":
-            self.apk = AndroguardImp(apkpath)
+    def __init__(self, apkpath, core_library="dextrace"):
+        match core_library:
+            case "rizin":
+                self.apk = RizinImp(apkpath)
+            case "androguard":
+                self.apk = AndroguardImp(apkpath)
+            case "dextrace":
+                self.apk = DexTraceImp(apkpath)
 
         self.all_strings = self.apk.get_strings()
 

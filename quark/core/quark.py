@@ -184,7 +184,7 @@ MAX_SEARCH_LAYER = 3
 class Quark:
     """Quark module is used to check quark's five-stage theory"""
 
-    def __init__(self, apk, core_library="androguard", auto_fix_checksum=False, dynamic_resolve=False):
+    def __init__(self, apk, core_library="dextrace", auto_fix_checksum=False, dynamic_resolve=False):
         """
 
         :param apk: the filename of the apk.
@@ -700,8 +700,10 @@ class Quark:
                 )
 
                 if mutual_parent_function_list is None:
-                    # Exit if the level 4 stage check fails.
-                    return
+                    # No intersection for this (first_api, second_api) pair,
+                    # try the next candidate pair instead of aborting the
+                    # whole rule check.
+                    continue
                 for parent_function in mutual_parent_function_list:
                     first_wrapper = []
                     second_wrapper = []

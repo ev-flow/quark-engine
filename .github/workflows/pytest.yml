@@ -6,7 +6,7 @@ name: build
 on:
   push:
     branches: [ master ]
-  pull_request_target:
+  pull_request:
     branches: [ master ]
 
 jobs:
@@ -70,10 +70,9 @@ jobs:
         pytest --cov=./ --cov-report=xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4.4.0
+      uses: codecov/codecov-action@v7.0.0
       with:
         fail_ci_if_error: true
         flags: unittests
         token: ${{ secrets.CODECOV_TOKEN }}
-        version: v0.6.0 
 

@@ -10,6 +10,7 @@ from quark.core.interface.baseapkinfo import BaseApkinfo
 from quark.core.rzapkinfo import RizinImp
 from quark.core.r2apkinfo import R2Imp
 from quark.core.shurikenapkinfo import ShurikenImp
+from quark.core.dextraceapkinfo import DexTraceImp
 from quark.core.struct.bytecodeobject import BytecodeObject
 from quark.core.struct.methodobject import MethodObject
 
@@ -72,6 +73,8 @@ def __generateTestIDs(testInput: Tuple[BaseApkinfo, Literal["DEX", "APK"]]):
         (R2Imp, "APK"),
         (ShurikenImp, "DEX"),
         (ShurikenImp, "APK"),
+        (DexTraceImp, "DEX"),
+        (DexTraceImp, "APK"),
     ),
     ids=__generateTestIDs,
 )
@@ -121,6 +124,8 @@ def apkinfo_with_R2Imp_only(request, SAMPLE_PATH_13667, dex_file):
         (R2Imp, "APK"),
         (ShurikenImp, "DEX"),
         (ShurikenImp, "APK"),
+        (DexTraceImp, "DEX"),
+        (DexTraceImp, "APK"),
     ),
     ids=__generateTestIDs,
 )
@@ -297,13 +302,19 @@ class TestApkinfo:
             ),
         }
 
-        if apkinfo.core_library == "androguard":
-            assert len(apkinfo.android_apis) == 1270
-        elif apkinfo.core_library == "rizin":
-            assert len(apkinfo.android_apis) > 0
-        elif apkinfo.core_library == "shuriken":
-            assert len(apkinfo.android_apis) == 1438
-            return
+        match apkinfo.core_library:
+            case "androguard":
+                assert len(apkinfo.android_apis) == 1270
+            case "rizin":
+                assert len(apkinfo.android_apis) > 0
+            case "shuriken":
+                assert len(apkinfo.android_apis) == 1438
+            case "dextrace":
+                assert len(apkinfo.android_apis) == 5348
+            case "radare2":
+                pass
+            case _:
+                assert False, f"Unknown core library: {apkinfo.core_library}"
 
         assert api.issubset(apkinfo.android_apis)
 
@@ -320,12 +331,19 @@ class TestApkinfo:
                 "()V",
             ),
         }
-        if apkinfo.core_library == "androguard":
-            assert len(apkinfo.custom_methods) == 3999
-        elif apkinfo.core_library == "rizin":
-            assert len(apkinfo.custom_methods) > 0
-        elif apkinfo.core_library == "shuriken":
-            assert len(apkinfo.custom_methods) == 3999
+        match apkinfo.core_library:
+            case "androguard":
+                assert len(apkinfo.custom_methods) == 3999
+            case "rizin":
+                assert len(apkinfo.custom_methods) > 0
+            case "shuriken":
+                assert len(apkinfo.custom_methods) == 3999
+            case "dextrace":
+                assert len(apkinfo.custom_methods) == 109
+            case "radare2":
+                pass
+            case _:
+                assert False, f"Unknown core library: {apkinfo.core_library}"
 
         assert test_custom_method.issubset(apkinfo.custom_methods)
 

@@ -12,10 +12,18 @@ from collections import defaultdict, namedtuple
 from os import PathLike
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Union
 
-import r2pipe
+try:
+    import r2pipe
+    _has_r2pipe = True
+except ModuleNotFoundError:
+    _has_r2pipe = False
 
 from quark.core.axmlreader import AxmlReader
-from quark.core.interface.baseapkinfo import BaseApkinfo, XMLElement
+from quark.core.interface.baseapkinfo import (
+    BaseApkinfo,
+    CoreLibraryUnavailable,
+    XMLElement,
+)
 from quark.core.struct.bytecodeobject import BytecodeObject
 from quark.core.struct.methodobject import MethodObject
 from quark.utils.tools import (
@@ -46,6 +54,14 @@ class R2Imp(BaseApkinfo):
         apk_filepath: Union[str, PathLike],
         tmp_dir: Union[str, PathLike] = None,
     ):
+        if not _has_r2pipe:
+            raise CoreLibraryUnavailable(
+                "--core-library radare2 requires the 'radare2' extra:"
+                " pip install quark-engine[radare2]"
+                " (also requires the radare2 binary itself, see"
+                " https://rada.re/)"
+            )
+
         super().__init__(apk_filepath, "radare2")
 
         if self.ret_type == "DEX":

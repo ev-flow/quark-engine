@@ -20,7 +20,7 @@ try:
 except ModuleNotFoundError:
     _has_shuriken = False
 
-from quark.core.interface.baseapkinfo import BaseApkinfo
+from quark.core.interface.baseapkinfo import BaseApkinfo, CoreLibraryUnavailable
 from quark.core.struct.bytecodeobject import BytecodeObject
 from quark.core.struct.methodobject import MethodObject
 from quark.utils.tools import descriptor_to_androguard_format
@@ -36,7 +36,7 @@ class ShurikenImp(BaseApkinfo):
         tmp_dir: str | PathLike = None,
     ):
         if not _has_shuriken:
-            raise Exception(
+            raise CoreLibraryUnavailable(
                 "The Shuriken-based core library is not available because"
                 " Shuriken-Analyzer was not installed. To use this core"
                 " library, follow the instructions on the GitHub page"

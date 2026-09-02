@@ -12,10 +12,18 @@ from collections import defaultdict, namedtuple
 from os import PathLike
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Union
 
-import rzpipe
+try:
+    import rzpipe
+    _has_rzpipe = True
+except ModuleNotFoundError:
+    _has_rzpipe = False
 
 from quark.core.axmlreader import AxmlReader
-from quark.core.interface.baseapkinfo import BaseApkinfo, XMLElement
+from quark.core.interface.baseapkinfo import (
+    BaseApkinfo,
+    CoreLibraryUnavailable,
+    XMLElement,
+)
 from quark.core.struct.bytecodeobject import BytecodeObject
 from quark.core.struct.methodobject import MethodObject
 from quark.utils.tools import (
@@ -46,6 +54,14 @@ class RizinImp(BaseApkinfo):
         apk_filepath: Union[str, PathLike],
         tmp_dir: Union[str, PathLike] = None,
     ):
+        if not _has_rzpipe:
+            raise CoreLibraryUnavailable(
+                "--core-library rizin requires the 'rizin' extra:"
+                " pip install quark-engine[rizin]"
+                " (also requires the rizin binary itself, see"
+                " https://rizin.re/)"
+            )
+
         super().__init__(apk_filepath, "rizin")
 
         if self.ret_type == "DEX":

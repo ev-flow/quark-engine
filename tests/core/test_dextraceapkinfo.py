@@ -19,6 +19,7 @@ Tests cover bugs that were fixed:
 
 import os
 import zipfile
+from unittest.mock import patch
 
 import pytest
 
@@ -146,6 +147,7 @@ class TestBogusCompressionFix:
         """DexTraceImp must not leave temp APK files on disk after the instance is GC'd."""
         import glob
         import tempfile
+
         tmp_dir = tempfile.gettempdir()
         apk_before = set(glob.glob(os.path.join(tmp_dir, "*.apk")))
         instance = DexTraceImp(SAMPLE_PATH_3d52b)
@@ -172,10 +174,13 @@ class TestManifestFastFail:
     immediately, matching Androguard's behavior.
     """
 
-    @pytest.mark.parametrize("include_manifest,manifest_content", [
-        (True, b"not-valid-axml-bytes"),   # bad AXML bytes
-        (False, None),                      # missing manifest entry
-    ])
+    @pytest.mark.parametrize(
+        "include_manifest,manifest_content",
+        [
+            (True, b"not-valid-axml-bytes"),  # bad AXML bytes
+            (False, None),  # missing manifest entry
+        ],
+    )
     def test_unreadable_manifest_raises_value_error(
         self, tmp_path, include_manifest, manifest_content
     ):
@@ -187,3 +192,314 @@ class TestManifestFastFail:
             zf.writestr("classes.dex", b"")
         with pytest.raises(ValueError, match="AndroidManifest"):
             DexTraceImp(str(apk_path))
+
+
+# ---------------------------------------------------------------------------
+# Smali parsing helpers (_strip_smali_comment, _method_sig_to_androguard_
+# format, _parse_smali_to_bytecodeobject)
+# ---------------------------------------------------------------------------
+
+
+class TestStripSmaliComment:
+    """Regression tests for _strip_smali_comment."""
+
+    def test_no_comment_returns_stripped_input(self):
+        assert (
+            DexTraceImp._strip_smali_comment("  const/4 v0, 0x0  ")
+            == "const/4 v0, 0x0"
+        )
+
+    def test_trailing_comment_is_removed(self):
+        assert (
+            DexTraceImp._strip_smali_comment("const/4 v0, 0x0 // comment")
+            == "const/4 v0, 0x0"
+        )
+
+    def test_comment_marker_inside_string_literal_is_kept(self):
+        smali = 'const-string v0, "http://example.com" // set url'
+        assert (
+            DexTraceImp._strip_smali_comment(smali)
+            == 'const-string v0, "http://example.com"'
+        )
+
+
+class TestMethodSigToAndroguardFormat:
+    """Regression tests for _method_sig_to_androguard_format."""
+
+    def test_non_method_sig_is_returned_unchanged(self):
+        assert (
+            DexTraceImp._method_sig_to_androguard_format("Lcom/example/Foo;")
+            == "Lcom/example/Foo;"
+        )
+
+    def test_method_sig_gains_spaced_args(self):
+        sig = "Lcom/example/Foo;->bar(ILjava/lang/String;)V"
+        assert (
+            DexTraceImp._method_sig_to_androguard_format(sig)
+            == "Lcom/example/Foo;->bar(I Ljava/lang/String;)V"
+        )
+
+    def test_method_sig_with_no_args(self):
+        sig = "Lcom/example/Foo;->bar()V"
+        assert (
+            DexTraceImp._method_sig_to_androguard_format(sig)
+            == "Lcom/example/Foo;->bar()V"
+        )
+
+    def test_malformed_sig_falls_back_to_raw_string(self):
+        # Has "->" and "(" but a descriptor that descriptor_to_androguard_
+        # format() cannot parse (no closing paren) must not raise — it
+        # should fall back to the original string.
+        sig = "Lcom/example/Foo;->bar(ILjava/lang/String;"
+        assert DexTraceImp._method_sig_to_androguard_format(sig) == sig
+
+
+class TestParseSmaliToBytecodeObject:
+    """Regression tests for _parse_smali_to_bytecodeobject."""
+
+    def test_mnemonic_only_instruction(self, dextrace_instance):
+        bytecode = dextrace_instance._parse_smali_to_bytecodeobject(
+            "return-void"
+        )
+        assert bytecode.mnemonic == "return-void"
+        assert bytecode.registers is None
+        assert bytecode.parameter is None
+
+    def test_empty_smali_raises_value_error(self, dextrace_instance):
+        with pytest.raises(ValueError, match="Empty smali"):
+            dextrace_instance._parse_smali_to_bytecodeobject("   ")
+
+    def test_const_numeric_literal_is_parsed_as_int(self, dextrace_instance):
+        bytecode = dextrace_instance._parse_smali_to_bytecodeobject(
+            "const/4 v0, 0x1"
+        )
+        assert bytecode.mnemonic == "const/4"
+        assert bytecode.registers == ["v0"]
+        assert bytecode.parameter == 1
+
+    def test_const_non_numeric_literal_is_kept_as_string(
+        self, dextrace_instance
+    ):
+        # A const-family literal that isn't a valid int() text (e.g. a
+        # symbolic placeholder) must not raise -- the ValueError is
+        # swallowed and the raw text is kept unparsed.
+        bytecode = dextrace_instance._parse_smali_to_bytecodeobject(
+            "const/4 v0, not_a_number"
+        )
+        assert bytecode.mnemonic == "const/4"
+        assert bytecode.parameter == "not_a_number"
+
+    def test_const_string_strips_quotes(self, dextrace_instance):
+        bytecode = dextrace_instance._parse_smali_to_bytecodeobject(
+            'const-string v0, "hello"'
+        )
+        assert bytecode.parameter == "hello"
+
+    def test_invoke_parameter_normalized_to_androguard_format(
+        self, dextrace_instance
+    ):
+        smali = (
+            "invoke-virtual {v0, v1}, "
+            "Lcom/example/Foo;->bar(ILjava/lang/String;)V"
+        )
+        bytecode = dextrace_instance._parse_smali_to_bytecodeobject(smali)
+        assert bytecode.mnemonic == "invoke-virtual"
+        assert bytecode.registers == ["v0", "v1"]
+        assert (
+            bytecode.parameter
+            == "Lcom/example/Foo;->bar(I Ljava/lang/String;)V"
+        )
+
+    def test_field_access_parameter_uses_space_instead_of_colon(
+        self, dextrace_instance
+    ):
+        smali = (
+            "iget-object v0, v1, Lcom/example/Foo;->name:Ljava/lang/String;"
+        )
+        bytecode = dextrace_instance._parse_smali_to_bytecodeobject(smali)
+        assert bytecode.mnemonic == "iget-object"
+        assert (
+            bytecode.parameter == "Lcom/example/Foo;->name Ljava/lang/String;"
+        )
+
+
+# ---------------------------------------------------------------------------
+# _disasm_by_sig (mocked dextrace.api.disasm_method)
+# ---------------------------------------------------------------------------
+
+
+class TestDisasmBySig:
+    """Regression tests for _disasm_by_sig, mocking the DexTrace-provided
+    disasm_method() so no real disassembly is performed."""
+
+    SIG = "Lcom/example/Foo;->bar()V"
+
+    def test_disasm_disabled_returns_none(self, dextrace_instance):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        dextrace_instance._enable_disasm = False
+        try:
+            with patch(
+                "quark.core.dextraceapkinfo.disasm_method"
+            ) as mock_disasm:
+                assert dextrace_instance._disasm_by_sig(self.SIG) is None
+                mock_disasm.assert_not_called()
+        finally:
+            dextrace_instance._enable_disasm = True
+            dextrace_instance._disasm_by_sig.cache_clear()
+
+    def test_disasm_method_raises_returns_none(self, dextrace_instance):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        with patch(
+            "quark.core.dextraceapkinfo.disasm_method",
+            side_effect=RuntimeError("boom"),
+        ):
+            assert dextrace_instance._disasm_by_sig(self.SIG) is None
+        dextrace_instance._disasm_by_sig.cache_clear()
+
+    def test_disasm_result_missing_methods_key_returns_none(
+        self, dextrace_instance
+    ):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        with patch(
+            "quark.core.dextraceapkinfo.disasm_method",
+            return_value={"not_methods": {}},
+        ):
+            assert dextrace_instance._disasm_by_sig(self.SIG) is None
+        dextrace_instance._disasm_by_sig.cache_clear()
+
+    def test_disasm_result_exact_sig_match_returns_instructions(
+        self, dextrace_instance
+    ):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        normalized_sig = dextrace_instance._normalize_dextrace_sig(self.SIG)
+        fake_result = {
+            "methods": {
+                normalized_sig: {
+                    "instructions": [
+                        {"smali": "return-void"},
+                        {"no_smali_key": True},
+                        "not-a-dict",
+                    ]
+                }
+            }
+        }
+        with patch(
+            "quark.core.dextraceapkinfo.disasm_method",
+            return_value=fake_result,
+        ):
+            result = dextrace_instance._disasm_by_sig(self.SIG)
+        assert result == [{"smali": "return-void"}]
+        dextrace_instance._disasm_by_sig.cache_clear()
+
+    def test_disasm_result_falls_back_to_normalized_key_match(
+        self, dextrace_instance
+    ):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        # Key in the result uses a differently-formatted (but equivalent
+        # after normalization) signature than the lookup key.
+        fake_result = {
+            "methods": {
+                "Lcom/example/Foo;->bar()V  ": {
+                    "instructions": [{"smali": "return-void"}]
+                }
+            }
+        }
+        with patch(
+            "quark.core.dextraceapkinfo.disasm_method",
+            return_value=fake_result,
+        ):
+            result = dextrace_instance._disasm_by_sig(self.SIG)
+        assert result == [{"smali": "return-void"}]
+        dextrace_instance._disasm_by_sig.cache_clear()
+
+    def test_disasm_result_no_matching_method_returns_none(
+        self, dextrace_instance
+    ):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        fake_result = {"methods": {"Lother/Class;->other()V": {}}}
+        with patch(
+            "quark.core.dextraceapkinfo.disasm_method",
+            return_value=fake_result,
+        ):
+            assert dextrace_instance._disasm_by_sig(self.SIG) is None
+        dextrace_instance._disasm_by_sig.cache_clear()
+
+    def test_disasm_result_instructions_not_a_list_returns_none(
+        self, dextrace_instance
+    ):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        normalized_sig = dextrace_instance._normalize_dextrace_sig(self.SIG)
+        fake_result = {
+            "methods": {normalized_sig: {"instructions": "not-a-list"}}
+        }
+        with patch(
+            "quark.core.dextraceapkinfo.disasm_method",
+            return_value=fake_result,
+        ):
+            assert dextrace_instance._disasm_by_sig(self.SIG) is None
+        dextrace_instance._disasm_by_sig.cache_clear()
+
+    def test_disasm_result_empty_instruction_list_returns_none(
+        self, dextrace_instance
+    ):
+        dextrace_instance._disasm_by_sig.cache_clear()
+        normalized_sig = dextrace_instance._normalize_dextrace_sig(self.SIG)
+        fake_result = {"methods": {normalized_sig: {"instructions": []}}}
+        with patch(
+            "quark.core.dextraceapkinfo.disasm_method",
+            return_value=fake_result,
+        ):
+            assert dextrace_instance._disasm_by_sig(self.SIG) is None
+        dextrace_instance._disasm_by_sig.cache_clear()
+
+
+# ---------------------------------------------------------------------------
+# _build_graph offset fallback (missing invoke offset for a caller)
+# ---------------------------------------------------------------------------
+
+
+class TestBuildGraphMissingOffsetFallback:
+    """Regression test for _build_graph's missing-offset fallback path.
+
+    When any call in a caller's call list is missing an "offset", _build_
+    graph must log a warning and keep DexTrace's original per-caller call
+    order instead of raising or guessing an offset-based order.
+    """
+
+    def test_missing_offset_falls_back_to_original_order_and_warns(
+        self, dextrace_instance, caplog
+    ):
+        caller_sig = "Lcom/example/RegressionCaller;->missingOffset()V"
+        callee_a = "Lcom/example/RegressionCalleeA;->a()V"
+        callee_b = "Lcom/example/RegressionCalleeB;->b()V"
+
+        api_calls = [
+            {
+                "caller_sig": caller_sig,
+                "callee_sig": callee_a,
+                "offset": 10,
+            },
+            {
+                "caller_sig": caller_sig,
+                "callee_sig": callee_b,
+                # No offset for this call -> the whole caller must fall
+                # back to original order instead of offset-based sorting.
+            },
+        ]
+
+        from quark.core.dextraceapkinfo import log as dextrace_log
+
+        with caplog.at_level("WARNING", logger="quark.core.dextraceapkinfo"):
+            with patch.object(dextrace_log, "disabled", False):
+                dextrace_instance._build_graph(api_calls)
+
+        assert "falling back to original call order" in caplog.text
+
+        caller_mo = dextrace_instance._sig_to_method_object(caller_sig)
+        callee_mo_a = dextrace_instance._sig_to_method_object(callee_a)
+        callee_mo_b = dextrace_instance._sig_to_method_object(callee_b)
+
+        ordered_callees = [
+            mo for mo, _ in dextrace_instance._calls_by_caller[caller_mo]
+        ]
+        assert ordered_callees == [callee_mo_a, callee_mo_b]
