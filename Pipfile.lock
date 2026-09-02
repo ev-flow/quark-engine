@@ -1428,12 +1428,12 @@
         },
         "pip": {
             "hashes": [
-                "sha256:382ff9f685ee3bc25864f820aa50505825f10f5458ffff07e30a6d96e5715cab",
-                "sha256:f49cd134c61cf2fd75e0ce2676db03e4054504a5a4986d00f8299ae632dc4605"
+                "sha256:2d8542afcc84cdd8e846c2b36b2861fad1da376dd98f8e7113e9108a3c331690",
+                "sha256:931c303696af6fa3417112103b1cad26890e5a07eccb5b99783700e33f2b8aad"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.10'",
-            "version": "==26.1.2"
+            "version": "==26.2"
         },
         "plotly": {
             "hashes": [
