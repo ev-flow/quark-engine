@@ -1,15 +1,15 @@
 quark-engine (26.9.1-0kali1) kali-dev; urgency=medium
 
-  * Document Enhancement
+  * Documentation Enhancements
 
-    - Add Quark malware analysis reports for EventBot, Skygofree, and Chrysaor. (#961, #963, and #968)
-    - Refresh malware report documentation by adding README images/entries and unifying report headings and titles. (#950 and #965)
+    - Add Quark malware analysis reports for EventBot, Skygofree, and Chrysaor. (#961, #963, #968)
+    - Unify the titles and headings across malware family analysis reports. (#950)
 
-  * Bug Fixes
+  * Improvements
 
-    - Fix Read the Docs PDF build by replacing images that served WebP content under `.png` filenames. (#962)
+    - Set DexTrace as the default analysis library. To fall back to Androguard, run Quark with `--core-library androguard`. (#966)
 
- --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 31 Aug 2026 13:00:00 +0800
+ -- Shaun Dang <pulorsok@gmail.com>  Mon, 31 Aug 2026 13:00:00 +0800
 
 quark-engine (26.8.1-0kali1) kali-dev; urgency=medium
 
