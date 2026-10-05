@@ -1,3 +1,11 @@
+quark-engine (26.10.1-0kali1) kali-dev; urgency=medium
+
+  * Document Enhancement
+
+    - Add Quark malware analysis reports for Exodus, RuMMS, and Dendroid. (#976, #974, and #973)
+
+ --  Zin Wong <chriswangxxxxx@gmail.com>  Mon, 05 Oct 2026 13:07:54 +0800
+
 quark-engine (26.9.1-0kali1) kali-dev; urgency=medium
 
   * Documentation Enhancements
