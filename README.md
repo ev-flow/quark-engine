@@ -76,6 +76,16 @@
       <td><img src="https://github.com/user-attachments/assets/dfe535ee-71fa-499b-98eb-0a8f4854182c" width="310"></td>
       <td><img src="https://github.com/user-attachments/assets/d827122b-63cf-4370-895d-e38a274d19c9" width="310"></td>
   </tr>
+  <tr>
+      <td><img src="https://github.com/user-attachments/assets/f39034b9-4920-421d-9078-d030c3409571" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/98db18dc-526c-481f-bf4f-62bea5fde5ee" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/aabc5739-074c-4336-9352-c79a6b737067" width="310"></td>
+  </tr>
+  <tr>
+      <td><img src="https://github.com/user-attachments/assets/91d88a98-5387-401c-b8a9-d09b122ba681" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/7a608c0d-8e12-4b77-92cd-b785c5572f2c" width="310"></td>
+      <td><img src="https://github.com/user-attachments/assets/276ab27a-3880-4847-8aec-3ed5f77949bc" width="310"></td>
+  </tr>
 </table>
 
 
@@ -105,6 +115,12 @@
 | Sova        | Android banking trojan distributed as trojanised carrier apps for credential theft and SMS fraud. | 1. Read device identifiers via the C2 ping-response handler.<br>2. Inject outbound SMS on operator command.<br>3. Place phone calls without user consent. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#sova-malware-family-analysis-report) |
 | EventBot    | Banking trojan and infostealer targeting 200+ financial apps. | 1. Enumerate installed applications to pick targets.<br>2. Intercept incoming SMS via a broadcast receiver.<br>3. Exfiltrate SMS bodies over HTTP to defeat 2FA. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#eventbot-malware-family-analysis-report) |
 | Skygofree   | Android spyware designed for surveillance and sensitive data collection. | 1. Capture audio.<br>2. Access stored application data.<br>3. Download new code at runtime.<br>4. Capture video. | [View](https://quark-engine.readthedocs.io/en/latest/quark_rules.html#new-quark-rules-for-skygofree) |
+| Chrysaor    | Android build of the Pegasus spyware developed by NSO Group. | 1. Capture audio.<br>2. Check Internet connectivity. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#chrysaor-malware-family-analysis-report) |
+| Dendroid    | Commercial Android RAT sold on underground forums. | 1. Capture audio.<br>2. Access data from the local system.<br>3. Gather SMS messages. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#dendroid-malware-family-analysis-report) |
+| RuMMS       | Android SMS-stealing family spread through SMS phishing links. | 1. Discover network configuration.<br>2. Gather SMS messages. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#rumms-malware-family-analysis-report) |
+| Exodus      | Android surveillanceware delivered through decoy mobile-operator service apps. | 1. Discover installed applications.<br>2. Discover network configuration.<br>3. Gather call log data. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#exodus-malware-family-analysis-report) |
+| BrainTest   | Android malware found in a Google Play game that runs root exploits and pulls further code from its server. | 1. Download new code at runtime. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#braintest-malware-family-analysis-report) |
+| Herodotus   | Android banking trojan built for device takeover, sold as malware-as-a-service. | 1. Access data from the local system. | [View](https://quark-engine.readthedocs.io/en/latest/malware_report.html#herodotus-malware-family-analysis-report) |
 
 ## Quick Start
 
