@@ -1,0 +1,26 @@
+name: README documentation links
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  check-readme-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r docs/requirements.txt
+      - name: Test the link checker
+        run: python -m unittest discover -s docs/tests
+      - name: Build documentation
+        run: sphinx-build docs/source docs/_build/html
+      - name: Check README documentation links
+        run: python docs/check_readme_links.py
