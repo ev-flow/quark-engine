@@ -1,3 +1,11 @@
+quark-engine (26.11.1-0kali1) kali-dev; urgency=medium
+
+  * Document Enhancement
+
+    - Add Quark malware analysis reports for BrainTest, Herodotus, and BTMOB RAT. (#977, #983, and #985)
+
+ --  Shaun Dang <pulorsok@gmail.com>  Fri, 06 Nov 2026 13:44:28 +0800
+
 quark-engine (26.10.1-0kali1) kali-dev; urgency=medium
 
   * Document Enhancement
